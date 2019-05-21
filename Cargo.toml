@@ -1,0 +1,13 @@
+[package]
+name = "test-backend"
+version = "0.1.0"
+authors = ["Jakob Fischer <JakobFischer93@gmail.com>"]
+edition = "2018"
+
+[dependencies]
+log = "0.4.6"
+env_logger = "0.6.1"
+chrono = "0.4.6"
+rand = "0.6.5"
+hyper = "0.12.29"
+postgres = "0.15.2"
