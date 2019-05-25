@@ -18,8 +18,8 @@ impl UserDaoPg {
         connection.execute("
             CREATE TABLE IF NOT EXISTS user_(
                 id      SERIAL PRIMARY KEY,
-                name    TEXT NOT NULL,
-                email   TEXT NOT NULL)", &[])?;
+                name    TEXT NOT NULL UNIQUE,
+                email   TEXT NOT NULL UNIQUE)", &[])?;
         trace!("Created table user_, if was needed.");
 
         let dao = UserDaoPg {
@@ -47,6 +47,23 @@ impl UserDao for UserDaoPg {
         debug!("Added user: {}", user);
 
         Ok(user)
+    }
+
+    fn username_exists(&self, username: &str) -> Result<bool, DaoError> {
+        let stmt = self.connection.prepare("
+            SELECT EXISTS(SELECT 1 FROM user_ WHERE name = $1)
+        ")?;
+        let rows = stmt.query(&[&username])?;
+        let exists: bool = rows.get(0).get(0);
+        Ok(exists)
+    }
+    fn email_exists(&self, email: &str) -> Result<bool, DaoError> {
+       let stmt = self.connection.prepare("
+            SELECT EXISTS(SELECT 1 FROM user_ WHERE email = $1)
+        ")?;
+        let rows = stmt.query(&[&email])?;
+        let exists: bool = rows.get(0).get(0);
+        Ok(exists)
     }
 }
 
