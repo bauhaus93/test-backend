@@ -1,7 +1,7 @@
 use postgres::{ Connection, TlsMode };
 
-use crate::dto::User;
-use crate::persistence::UserDao;
+use crate::dto::PasswordHash;
+use crate::persistence::PasswordDao;
 use crate::persistence::DaoError;
 
 pub struct PasswordDaoPg {
@@ -20,13 +20,15 @@ impl PasswordDaoPg {
     }
 }
 
-impl UserDao for UserDaoPg {
+impl PasswordDao for PasswordDaoPg {
     fn add_password_hash(&self, password_hash: PasswordHash) -> Result<PasswordHash, DaoError> {
         trace!("Preparing statement for adding password hash...");
         let stmt = self.connection.prepare("
             INSERT INTO password (hash, salt, user_id) VALUES ($1, $2, $3)
         ")?;
-        stmt.execute(&[&user.get_name(), &user.get_email()])?;
+        stmt.execute(&[&password_hash.get_hash(),
+                       &password_hash.get_salt(),
+                       &password_hash.get_user_id()])?;
 
         debug!("Added password hash: {}", password_hash);
 

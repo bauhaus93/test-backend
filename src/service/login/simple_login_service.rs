@@ -7,19 +7,21 @@ use rand::rngs::StdRng;
 
 use crate::dto::{ Login, Session, PasswordHash };
 use crate::service::ServiceError;
-use crate::persistence::UserDao;
+use crate::persistence::{ UserDao, PasswordDao };
 use super::{ LoginError, LoginService };
 
 pub struct SimpleLoginService {
     rng: RefCell<StdRng>,
-    user_dao: Rc<UserDao>
+    user_dao: Rc<UserDao>,
+    password_dao: Rc<PasswordDao>
 }
 
 impl SimpleLoginService {
-    pub fn new(user_dao: Rc<UserDao>) -> Result<SimpleLoginService, ServiceError> {
+    pub fn new(user_dao: Rc<UserDao>, password_dao: Rc<PasswordDao>) -> Result<SimpleLoginService, ServiceError> {
         let service = SimpleLoginService {
             rng: RefCell::new(StdRng::from_entropy()),
-            user_dao: user_dao
+            user_dao: user_dao,
+            password_dao: password_dao
         };
         Ok(service)
     }
@@ -65,7 +67,13 @@ impl LoginService for SimpleLoginService {
         if check_password_strength(login.get_password()) {
             return Err(LoginError::InvalidPassword.into());
         }
-        let password_hash = self.create_salted_password_hash(login.get_password());
+        // TODO: handle users without password
+        let user = self.user_dao.add_user(user.clone())?;
+
+        let mut password_hash = self.create_salted_password_hash(login.get_password());
+        password_hash.set_user_id(user.get_id());
+
+        self.password_dao.add_password_hash(password_hash)?;
 
         Ok(Session{})
     }

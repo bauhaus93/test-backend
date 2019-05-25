@@ -17,7 +17,17 @@ impl PasswordHash {
     pub fn set_salt(&mut self, salt: [u8; 16]) {
         self.salt = salt;
     }
-}
+
+    pub fn get_user_id(&self) -> i32 {
+        self.user_id
+    }
+    pub fn get_hash(&self) -> &[u8] {
+        &self.hash
+    }
+    pub fn get_salt(&self) -> &[u8] {
+        &self.salt
+    }
+} 
 
 impl Default for PasswordHash {
     fn default() -> PasswordHash {

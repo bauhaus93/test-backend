@@ -1,6 +1,8 @@
 use std::fmt;
 
-#[derive(Debug)]
+use super::PasswordHash;
+
+#[derive(Debug, Clone)]
 pub struct User {
     id: i32,
     name: String,
