@@ -3,7 +3,7 @@ extern crate log;
 
 extern crate test_backend;
 
-use test_backend::persistence::impls::pg_params::PG_PARAMS_TEST;
+use test_backend::persistence::pg_params::PG_PARAMS_TEST;
 use test_backend::persistence::{ UserDao, UserDaoPg };
 use test_backend::dto::User;
 use test_backend::utility::init_logger;
@@ -28,6 +28,21 @@ fn add_user() {
     let mut user = User::default();
     user.set_name("Hans");
     user.set_email("hans@sers.com");
+
+    match dao.username_exists(user.get_name()) {
+        Ok(username_exists) => assert_eq!(false, username_exists),
+        Err(e) => {
+            error!("{}", e);
+            panic!();
+        }
+    }
+    match dao.email_exists(user.get_email()) {
+        Ok(email_exists) => assert_eq!(false, email_exists),
+        Err(e) => {
+            error!("{}", e);
+            panic!();
+        }
+    }
 
     match dao.add_user(user) {
         Ok(u) => {

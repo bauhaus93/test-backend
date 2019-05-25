@@ -12,15 +12,6 @@ impl UserDaoPg {
     pub fn new(connection_params: &str) -> Result<UserDaoPg, DaoError> {
         trace!("Connecting to db with '{}'...", connection_params);
         let connection = Connection::connect(connection_params, TlsMode::None)?;
-        trace!("Connected to db.");
-
-        trace!("Creating table user_, if not existing...");
-        connection.execute("
-            CREATE TABLE IF NOT EXISTS user_(
-                id      SERIAL PRIMARY KEY,
-                name    TEXT NOT NULL UNIQUE,
-                email   TEXT NOT NULL UNIQUE)", &[])?;
-        trace!("Created table user_, if was needed.");
 
         let dao = UserDaoPg {
             connection: connection
@@ -36,7 +27,6 @@ impl UserDao for UserDaoPg {
             INSERT INTO user_ (name, email) VALUES ($1, $2)
             RETURNING id
         ")?;
-        trace!("Statement prepared.");
         let rows = stmt.query(&[&user.get_name(), &user.get_email()])?;
         debug_assert!(rows.len() == 1);
 

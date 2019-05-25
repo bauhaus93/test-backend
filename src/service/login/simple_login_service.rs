@@ -1,10 +1,11 @@
 use std::rc::Rc;
 use std::cell::RefCell;
+use sha2::{ Sha512Trunc256, Digest };
 
 use rand::{ Rng, FromEntropy };
 use rand::rngs::StdRng;
 
-use crate::dto::{ Login, Session };
+use crate::dto::{ Login, Session, PasswordHash };
 use crate::service::ServiceError;
 use crate::persistence::UserDao;
 use super::{ LoginError, LoginService };
@@ -21,6 +22,27 @@ impl SimpleLoginService {
             user_dao: user_dao
         };
         Ok(service)
+    }
+
+    fn create_salted_password_hash(&self, password: &str) -> PasswordHash {
+
+        let mut salt: [u8; 16] = [0; 16];
+        self.rng.borrow_mut().fill(&mut salt);
+
+        let mut hasher = Sha512Trunc256::new();
+        hasher.input(password);
+        hasher.input(salt);
+
+        let mut hash: [u8; 32] = [0; 32];
+        for (byte, output) in hash.iter_mut().zip(hasher.result().iter()) {
+            *byte = *output;
+        }
+
+        let mut password_hash = PasswordHash::default();
+        password_hash.set_hash(hash);
+        password_hash.set_salt(salt);
+
+        password_hash
     }
 }
 
@@ -43,6 +65,7 @@ impl LoginService for SimpleLoginService {
         if check_password_strength(login.get_password()) {
             return Err(LoginError::InvalidPassword.into());
         }
+        let password_hash = self.create_salted_password_hash(login.get_password());
 
         Ok(Session{})
     }

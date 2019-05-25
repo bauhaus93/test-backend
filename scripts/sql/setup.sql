@@ -1,0 +1,12 @@
+
+CREATE TABLE IF NOT EXISTS user_(
+    id          SERIAL PRIMARY KEY,
+    name        TEXT NOT NULL UNIQUE,
+    email       TEXT NOT NULL UNIQUE
+);
+
+CREATE TABLE IF NOT EXISTS password(
+    hash    BYTEA PRIMARY KEY NOT NULL CHECK (OCTET_LENGTH(hash) = 32),
+    salt    BYTEA NOT NULL CHECK (OCTET_LENGTH(salt) = 16),
+    user_id INTEGER NOT NULL REFERENCES user_(id)
+);

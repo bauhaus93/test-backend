@@ -5,6 +5,7 @@ extern crate chrono;
 extern crate rand;
 extern crate hyper;
 extern crate postgres;
+extern crate sha2;
 
 pub mod application;
 pub mod service;
