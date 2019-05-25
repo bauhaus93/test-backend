@@ -4,16 +4,7 @@
         {
             "label": "run_release",
             "type": "shell",
-            "options": {
-                "env": {
-                    "RUST_LOG": "test-backend=debug,main=debug"
-                }
-            },
-            "command": "cargo",
-            "args": [
-                "run",
-                "--release"
-            ],
+            "command": "${workspaceRoot}/scripts/run_release.sh",
             "problemMatcher": [
                 "$rustc"
             ],
@@ -25,15 +16,7 @@
         {
             "label": "run_debug",
             "type": "shell",
-            "options": {
-                "env": {
-                    "RUST_LOG": "test-backend=debug,main=debug"
-                }
-            },
-            "command": "cargo",
-            "args": [
-                "run"
-            ],
+            "command": "${workspaceRoot}/scripts/run_debug.sh",
             "problemMatcher": [
                 "$rustc"
             ],
@@ -46,5 +29,58 @@
                 "isDefault": true
             }
         },
+        {
+            "label": "run_test",
+            "type": "shell",
+            "command": "${workspaceRoot}/scripts/run_test.sh",
+            "problemMatcher": [
+                "$rustc"
+            ],
+            "presentation": {
+                "showReuseMessage": false,
+                "clear": true
+            },
+            "group": {
+                "kind": "build",
+                "isDefault": true
+            }
+        },
+        {
+            "label": "pg_setup",
+            "type": "shell",
+            "linux": {
+                "command": "${workspaceRoot}/scripts/pg_init.sh",
+            },
+            "presentation": {
+                "focus": true,
+                "showReuseMessage": false,
+                "clear": true
+            },
+            "problemMatcher": []
+        },
+        {
+            "label": "pg_start",
+            "type": "shell",
+            "linux": {
+                "command": "${workspaceRoot}/scripts/pg_start.sh",
+            },
+            "presentation": {
+                "showReuseMessage": false,
+                "clear": true
+            },
+            "problemMatcher": []
+        },
+        {
+            "label": "pg_stop",
+            "type": "shell",
+            "linux": {
+                "command": "${workspaceRoot}/scripts/pg_stop.sh",
+            },
+            "presentation": {
+                "showReuseMessage": false,
+                "clear": true
+            },
+            "problemMatcher": []
+        }
     ]
 }

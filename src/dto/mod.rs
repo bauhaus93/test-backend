@@ -1,4 +1,4 @@
 
-pub mod user_dto;
+pub mod user;
 
-pub use self::user_dto::UserDTO;
+pub use self::user::User;

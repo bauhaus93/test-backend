@@ -1,8 +1,8 @@
 
 
-use crate::dto::UserDTO;
-use crate::persistence::DAOError;
+use crate::dto::User;
+use crate::persistence::DaoError;
 
-pub trait UserDAO {
-   fn add_user(user: UserDTO) -> Result<(), DAOError>;
+pub trait UserDao {
+   fn add_user(&self, user: User) -> Result<User, DaoError>;
 }

@@ -1,7 +1,7 @@
 
 use crate::service::ServiceError;
-use crate::dto::UserDTO;
+use crate::dto::User;
 
 pub trait UserService {
-    fn create_user(user: UserDTO) -> Result<(), ServiceError>;
+    fn create_user(user: User) -> Result<User, ServiceError>;
 }

@@ -1,3 +1,4 @@
+target
+pg_cluster
 *.lock
-/target
-**/*.rs.bk
+*.log
