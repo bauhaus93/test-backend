@@ -4,4 +4,5 @@ use std::io;
 
 #[derive(Debug)]
 pub enum ApplicationError {
+    
 }

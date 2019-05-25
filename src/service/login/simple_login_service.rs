@@ -5,9 +5,9 @@ use rand::{ Rng, FromEntropy };
 use rand::rngs::StdRng;
 
 use crate::dto::{ Login, Session };
-use crate::service::{ ServiceError, LoginError };
-use crate::service::LoginService;
+use crate::service::ServiceError;
 use crate::persistence::UserDao;
+use super::{ LoginError, LoginService };
 
 pub struct SimpleLoginService {
     rng: RefCell<StdRng>,

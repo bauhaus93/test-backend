@@ -3,7 +3,7 @@ use std::error::Error;
 use std::io;
 
 use crate::persistence::DaoError;
-use super::LoginError;
+use super::login::LoginError;
 
 #[derive(Debug)]
 pub enum ServiceError {
