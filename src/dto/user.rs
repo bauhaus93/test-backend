@@ -1,7 +1,5 @@
 use std::fmt;
 
-use super::PasswordHash;
-
 #[derive(Debug, Clone)]
 pub struct User {
     id: i32,

@@ -1,6 +1,5 @@
 use std::fmt;
 use std::error::Error;
-use std::io;
 
 use crate::persistence::DaoError;
 use super::login::LoginError;

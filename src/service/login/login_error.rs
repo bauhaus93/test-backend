@@ -1,8 +1,5 @@
 use std::fmt;
 use std::error::Error;
-use std::io;
-
-use crate::persistence::DaoError;
 
 #[derive(Debug)]
 pub enum LoginError {

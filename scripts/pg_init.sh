@@ -11,8 +11,8 @@ initdb -D pg_cluster -D pg_cluster/ -E UTF-8 --locale=de_AT.utf8
 
 scripts/pg_start.sh
 
-echo "Creating DB 'backend_production'"
-createdb backend_production
+echo "Creating DB 'backend_prod'"
+createdb backend_prod
 echo "Creating DB 'backend_test'"
 createdb backend_test
 
