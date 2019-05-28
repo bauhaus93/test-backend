@@ -1,3 +1,4 @@
+use std::net::SocketAddr;
 use hyper::{ Body, Response, Request, Server };
 use hyper::service::Service;
 use futures::{ future, Future };
