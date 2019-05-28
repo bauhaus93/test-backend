@@ -81,6 +81,18 @@
                 "clear": true
             },
             "problemMatcher": []
+        },
+        {
+            "label": "pg_clear",
+            "type": "shell",
+            "linux": {
+                "command": "${workspaceRoot}/scripts/pg_clear.sh",
+            },
+            "presentation": {
+                "showReuseMessage": false,
+                "clear": true
+            },
+            "problemMatcher": []
         }
     ]
 }

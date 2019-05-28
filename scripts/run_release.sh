@@ -1,3 +1,3 @@
 #!/bin/sh
 
-RUST_LOG="test-backend=debug,main=debug" cargo run --release
+RUST_LOG="test_backend=debug,main=debug" cargo run --release

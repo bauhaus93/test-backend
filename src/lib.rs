@@ -4,6 +4,7 @@ extern crate env_logger;
 extern crate chrono;
 extern crate rand;
 extern crate hyper;
+extern crate futures;
 extern crate postgres;
 extern crate sha2;
 
