@@ -3,15 +3,16 @@ use postgres::{ Connection, TlsMode };
 use crate::dto::PasswordHash;
 use crate::persistence::PasswordDao;
 use crate::persistence::DaoError;
+use super::pg_params::PG_PARAMS;
 
 pub struct PasswordDaoPg {
     connection: Connection
 }
 
 impl PasswordDaoPg {
-    pub fn new(connection_params: &str) -> Result<PasswordDaoPg, DaoError> {
-        trace!("Connecting to db with '{}'...", connection_params);
-        let connection = Connection::connect(connection_params, TlsMode::None)?;
+    pub fn new() -> Result<PasswordDaoPg, DaoError> {
+        trace!("Connecting to db with '{}'...", PG_PARAMS);
+        let connection = Connection::connect(PG_PARAMS, TlsMode::None)?;
 
         let dao = PasswordDaoPg {
             connection: connection

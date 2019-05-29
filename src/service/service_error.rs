@@ -2,7 +2,7 @@ use std::fmt;
 use std::error::Error;
 
 use crate::persistence::DaoError;
-use super::login::LoginError;
+use super::LoginError;
 
 #[derive(Debug)]
 pub enum ServiceError {

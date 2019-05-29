@@ -3,15 +3,16 @@ use postgres::{ Connection, TlsMode };
 use crate::dto::User;
 use crate::persistence::UserDao;
 use crate::persistence::DaoError;
+use super::pg_params::PG_PARAMS;
 
 pub struct UserDaoPg {
     connection: Connection
 }
 
 impl UserDaoPg {
-    pub fn new(connection_params: &str) -> Result<UserDaoPg, DaoError> {
-        trace!("Connecting to db with '{}'...", connection_params);
-        let connection = Connection::connect(connection_params, TlsMode::None)?;
+    pub fn new() -> Result<UserDaoPg, DaoError> {
+        trace!("Connecting to db with '{}'...", PG_PARAMS);
+        let connection = Connection::connect(PG_PARAMS, TlsMode::None)?;
 
         let dao = UserDaoPg {
             connection: connection

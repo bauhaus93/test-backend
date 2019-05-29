@@ -6,28 +6,26 @@ use rand::{ Rng, FromEntropy };
 use rand::rngs::StdRng;
 
 use crate::dto::{ Login, Session, PasswordHash };
-use crate::service::ServiceError;
-use crate::persistence::{ UserDao, PasswordDao };
-use super::{ LoginError, LoginService };
+use crate::persistence::{ UserDao, PasswordDao, UserDaoPg, PasswordDaoPg };
+use crate::service::{ ServiceError, LoginError, LoginService };
 
 pub struct SimpleLoginService {
     rng: RefCell<StdRng>,
-    user_dao: Rc<UserDao>,
-    password_dao: Rc<PasswordDao>
+    user_dao: Box<UserDao>,
+    password_dao: Box<PasswordDao>
 }
 
 impl SimpleLoginService {
-    pub fn new(user_dao: Rc<UserDao>, password_dao: Rc<PasswordDao>) -> Result<SimpleLoginService, ServiceError> {
+    pub fn new() -> Result<SimpleLoginService, ServiceError> {
         let service = SimpleLoginService {
             rng: RefCell::new(StdRng::from_entropy()),
-            user_dao: user_dao,
-            password_dao: password_dao
+            user_dao: Box::new(UserDaoPg::new()?),
+            password_dao: Box::new(PasswordDaoPg::new()?)
         };
         Ok(service)
     }
 
     fn create_salted_password_hash(&self, password: &str) -> PasswordHash {
-
         let mut salt: [u8; 16] = [0; 16];
         self.rng.borrow_mut().fill(&mut salt);
 
