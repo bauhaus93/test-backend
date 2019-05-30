@@ -1,5 +1,6 @@
 use std::rc::Rc;
 use std::cell::RefCell;
+use std::sync::Mutex;
 use sha2::{ Sha512Trunc256, Digest };
 
 use rand::{ Rng, FromEntropy };
@@ -10,7 +11,7 @@ use crate::persistence::{ UserDao, PasswordDao, UserDaoPg, PasswordDaoPg };
 use crate::service::{ ServiceError, LoginError, LoginService };
 
 pub struct SimpleLoginService {
-    rng: RefCell<StdRng>,
+    rng: Mutex<RefCell<StdRng>>,
     user_dao: Box<UserDao>,
     password_dao: Box<PasswordDao>
 }
@@ -18,16 +19,25 @@ pub struct SimpleLoginService {
 impl SimpleLoginService {
     pub fn new() -> Result<SimpleLoginService, ServiceError> {
         let service = SimpleLoginService {
-            rng: RefCell::new(StdRng::from_entropy()),
+            rng: Mutex::new(RefCell::new(StdRng::from_entropy())),
             user_dao: Box::new(UserDaoPg::new()?),
             password_dao: Box::new(PasswordDaoPg::new()?)
         };
         Ok(service)
     }
 
-    fn create_salted_password_hash(&self, password: &str) -> PasswordHash {
+    fn create_salted_password_hash(&self, password: &str) -> Result<PasswordHash, ServiceError> {
         let mut salt: [u8; 16] = [0; 16];
-        self.rng.borrow_mut().fill(&mut salt);
+        
+        match self.rng.lock() {
+            Ok(guard) => {
+                guard.borrow_mut().fill(&mut salt);
+            },
+            Err(poisoned) => {
+                return Err(ServiceError::MutexPoisoned);
+            }
+        }
+                
 
         let mut hasher = Sha512Trunc256::new();
         hasher.input(password);
@@ -42,7 +52,7 @@ impl SimpleLoginService {
         password_hash.set_hash(hash);
         password_hash.set_salt(salt);
 
-        password_hash
+        Ok(password_hash)
     }
 }
 
@@ -65,12 +75,13 @@ impl LoginService for SimpleLoginService {
         if check_password_strength(login.get_password()) {
             return Err(LoginError::InvalidPassword.into());
         }
+
+        let mut password_hash = self.create_salted_password_hash(login.get_password())?;
+        
         // TODO: handle users without password
         let user = self.user_dao.add_user(user.clone())?;
 
-        let mut password_hash = self.create_salted_password_hash(login.get_password());
         password_hash.set_user_id(user.get_id());
-
         self.password_dao.add_password_hash(password_hash)?;
 
         Ok(Session{})

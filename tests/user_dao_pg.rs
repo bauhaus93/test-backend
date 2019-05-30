@@ -3,13 +3,12 @@ extern crate log;
 
 extern crate test_backend;
 
-use test_backend::persistence::pg_params::PG_PARAMS_TEST;
 use test_backend::persistence::{ UserDao, UserDaoPg };
 use test_backend::dto::User;
 use test_backend::utility::init_logger;
 
 fn create_dao() -> UserDaoPg {
-    match UserDaoPg::new(PG_PARAMS_TEST) {
+    match UserDaoPg::new() {
         Ok(dao) => dao,
         Err(e) => {
             error!("{}", e);

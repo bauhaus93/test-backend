@@ -1,3 +1,4 @@
+use std::sync::Mutex;
 use postgres::{ Connection, TlsMode };
 
 use crate::dto::User;
@@ -6,7 +7,7 @@ use crate::persistence::DaoError;
 use super::pg_params::PG_PARAMS;
 
 pub struct UserDaoPg {
-    connection: Connection
+    connection: Mutex<Connection>
 }
 
 impl UserDaoPg {
@@ -15,7 +16,7 @@ impl UserDaoPg {
         let connection = Connection::connect(PG_PARAMS, TlsMode::None)?;
 
         let dao = UserDaoPg {
-            connection: connection
+            connection: Mutex::new(connection)
         };
         Ok(dao)
     }
@@ -24,7 +25,11 @@ impl UserDaoPg {
 impl UserDao for UserDaoPg {
     fn add_user(&self, mut user: User) -> Result<User, DaoError> {
         trace!("Preparing statement for adding user...");
-        let stmt = self.connection.prepare("
+        let guard = match self.connection.lock() {
+            Ok(guard) => guard,
+            Err(poisoned) => return Err(DaoError::MutexPoisoned)
+        };
+        let stmt = guard.prepare("
             INSERT INTO user_ (name, email) VALUES ($1, $2)
             RETURNING id
         ")?;
@@ -41,7 +46,11 @@ impl UserDao for UserDaoPg {
     }
 
     fn username_exists(&self, username: &str) -> Result<bool, DaoError> {
-        let stmt = self.connection.prepare("
+        let guard = match self.connection.lock() {
+            Ok(guard) => guard,
+            Err(poisoned) => return Err(DaoError::MutexPoisoned)
+        };
+        let stmt = guard.prepare("
             SELECT EXISTS(SELECT 1 FROM user_ WHERE name = $1)
         ")?;
         let rows = stmt.query(&[&username])?;
@@ -49,7 +58,12 @@ impl UserDao for UserDaoPg {
         Ok(exists)
     }
     fn email_exists(&self, email: &str) -> Result<bool, DaoError> {
-       let stmt = self.connection.prepare("
+        let guard = match self.connection.lock() {
+            Ok(guard) => guard,
+            Err(poisoned) => return Err(DaoError::MutexPoisoned)
+        };
+ 
+        let stmt = guard.prepare("
             SELECT EXISTS(SELECT 1 FROM user_ WHERE email = $1)
         ")?;
         let rows = stmt.query(&[&email])?;
