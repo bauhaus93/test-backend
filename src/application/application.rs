@@ -1,5 +1,5 @@
 use std::net::SocketAddr;
-use hyper::{ Body, Response, Request, Server };
+use hyper::{ Body, Response, Request, Method };
 use hyper::service::Service;
 use futures::{ future, Future };
 
@@ -21,10 +21,29 @@ impl Application {
     }
 
     pub fn request(&self, request: Request<Body>) -> Response<Body> {
-        info!("Recv request!");
-        Response::builder()
-            .status(200)
-            .body(Body::from("Sers"))
-            .unwrap()
+        info!("Request: HTTP {} {}", request.method(), request.uri());
+        match *request.method() {
+            Method::GET => self.handle_get(request),
+            Method::POST => self.handle_post(request),
+            _ => respond_404()
+        }
     }
+
+    fn handle_get(&self, request: Request<Body>) -> Response<Body> {
+        respond_404()
+    }
+
+    fn handle_post(&self, request: Request<Body>) -> Response<Body> {
+        match request.uri().path() {
+            "/signup" => Response::default(),
+            _ => respond_404()
+        }
+    }
+}
+
+fn respond_404() -> Response<Body> {
+    Response::builder()
+        .status(404)
+        .body(Body::from("Page not found"))
+        .unwrap()
 }
