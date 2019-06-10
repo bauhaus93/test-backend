@@ -4,8 +4,11 @@ use serde::{ Serialize, Deserialize };
 
 #[derive(Serialize, Deserialize, Clone)]
 pub struct User {
+    #[serde(default)]
     id: i32,
+    #[serde(default)]
     name: String,
+    #[serde(default)]
     email: String,
 }
 

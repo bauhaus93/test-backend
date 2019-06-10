@@ -2,6 +2,7 @@ use std::fmt;
 use std::error::Error;
 use std::string::FromUtf8Error;
 use hyper;
+use serde_json;
 
 use crate::presentation::PresentationError;
 
@@ -10,7 +11,8 @@ pub enum ApplicationError {
     Presentation(PresentationError),
     Utf8(FromUtf8Error),
     Hyper(hyper::Error),
-    HyperHttp(hyper::http::Error)
+    HyperHttp(hyper::http::Error),
+    Json(serde_json::Error)
 }
 
 impl From<PresentationError> for ApplicationError {
@@ -37,6 +39,11 @@ impl From<hyper::http::Error> for ApplicationError {
     }
 }
 
+impl From<serde_json::Error> for ApplicationError {
+    fn from(err: serde_json::Error) -> ApplicationError {
+        ApplicationError::Json(err)
+    }
+}
 
 
 impl Error for ApplicationError {
@@ -46,7 +53,8 @@ impl Error for ApplicationError {
             ApplicationError::Presentation(_) => "presentation",
             ApplicationError::Utf8(_) => "utf8",
             ApplicationError::Hyper(_) => "hyper",
-            ApplicationError::HyperHttp(_) => "hyper-http"
+            ApplicationError::HyperHttp(_) => "http",
+            ApplicationError::Json(_) => "json"
         }
     }
 
@@ -55,7 +63,8 @@ impl Error for ApplicationError {
             ApplicationError::Presentation(ref err) => Some(err),
             ApplicationError::Utf8(ref err) => Some(err),
             ApplicationError::Hyper(ref err) => Some(err),
-            ApplicationError::HyperHttp(ref err) => Some(err)
+            ApplicationError::HyperHttp(ref err) => Some(err),
+            ApplicationError::Json(ref err) => Some(err)
         }
     }
 }
@@ -66,7 +75,8 @@ impl fmt::Display for ApplicationError {
             ApplicationError::Presentation(ref err) => write!(f, "{}/{}", self.description(), err),
             ApplicationError::Utf8(ref err) => write!(f, "{}/{}", self.description(), err),
             ApplicationError::Hyper(ref err) => write!(f, "{}/{}", self.description(), err),
-            ApplicationError::HyperHttp(ref err) => write!(f, "{}/{}", self.description(), err)
+            ApplicationError::HyperHttp(ref err) => write!(f, "{}/{}", self.description(), err),
+            ApplicationError::Json(ref err) => write!(f, "{}/{}", self.description(), err)
         }
     }
 }

@@ -1,9 +1,13 @@
+use std::fmt;
+
 use serde::{ Serialize, Deserialize };
 use super::User;
 
 #[derive(Serialize, Deserialize, Clone)]
 pub struct Login {
+    #[serde(default)]
     user: User,
+    #[serde(default)]
     password: String
 }
 
@@ -15,3 +19,10 @@ impl Login {
         &self.password
     }
 }
+
+impl fmt::Display for Login {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        write!(f, "Login({}, Password = '{}')", self.user, self.password)
+    }
+}
+

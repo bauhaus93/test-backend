@@ -2,6 +2,7 @@ use hyper::{ Body, Response, Request, Method, StatusCode, header };
 use futures::{ Future, Stream };
 
 use crate::presentation::LoginController;
+use crate::dto::Login;
 use super::{ ApplicationError, ResponseFuture, respond_404, respond_500 };
 
 pub struct Application {
@@ -37,7 +38,7 @@ impl Application {
                     .concat2()
                     .from_err()
                     .and_then(|body| {
-                        let content = String::from_utf8(body.to_vec())?;
+                        let content: Login = serde_json::from_slice(&body.to_vec())?;
                         info!("Content = {}", content);
 
                         let response = Response::builder()
