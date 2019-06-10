@@ -49,7 +49,7 @@
             "label": "pg_setup",
             "type": "shell",
             "linux": {
-                "command": "${workspaceRoot}/scripts/pg_init.sh",
+                "command": "${workspaceRoot}/scripts/pg_setup.sh",
             },
             "presentation": {
                 "focus": true,

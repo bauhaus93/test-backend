@@ -1,6 +1,6 @@
 use std::fmt;
 
-#[derive(Debug)]
+#[derive(Clone, Copy, Debug)]
 pub struct PasswordHash {
     user_id: i32,
     hash: [u8; 32],

@@ -7,6 +7,7 @@ extern crate hyper;
 extern crate futures;
 extern crate postgres;
 extern crate sha2;
+extern crate serde;
 extern crate serde_json;
 
 pub mod application;

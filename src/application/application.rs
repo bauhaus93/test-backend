@@ -1,12 +1,8 @@
-use std::net::SocketAddr;
-use hyper::{ Body, Response, Request, Method };
-use hyper::service::Service;
-use futures::{ future, Future };
+use hyper::{ Body, Response, Request, Method, StatusCode, header };
+use futures::{ Future, Stream };
 
 use crate::presentation::LoginController;
-use super::ApplicationError;
-
-
+use super::{ ApplicationError, ResponseFuture, respond_404, respond_500 };
 
 pub struct Application {
     login_controller: LoginController
@@ -20,7 +16,7 @@ impl Application {
         Ok(app)
     }
 
-    pub fn request(&self, request: Request<Body>) -> Response<Body> {
+    pub fn request(&self, request: Request<Body>) -> ResponseFuture {
         info!("Request: HTTP {} {}", request.method(), request.uri());
         match *request.method() {
             Method::GET => self.handle_get(request),
@@ -29,21 +25,29 @@ impl Application {
         }
     }
 
-    fn handle_get(&self, request: Request<Body>) -> Response<Body> {
+    fn handle_get(&self, request: Request<Body>) -> ResponseFuture{
         respond_404()
     }
 
-    fn handle_post(&self, request: Request<Body>) -> Response<Body> {
+    fn handle_post(&self, request: Request<Body>) -> ResponseFuture {
         match request.uri().path() {
-            "/signup" => Response::default(),
+            "/signup" => {
+                Box::new(
+                    request.into_body()
+                    .concat2()
+                    .from_err()
+                    .and_then(|body| {
+                        let content = String::from_utf8(body.to_vec())?;
+                        info!("Content = {}", content);
+
+                        let response = Response::builder()
+                            .status(StatusCode::OK)
+                            .header(header::CONTENT_TYPE, "text")
+                            .body(Body::from("LELEL"))?;
+                        Ok(response)
+                    }))
+            },
             _ => respond_404()
         }
     }
-}
-
-fn respond_404() -> Response<Body> {
-    Response::builder()
-        .status(404)
-        .body(Body::from("Page not found"))
-        .unwrap()
 }

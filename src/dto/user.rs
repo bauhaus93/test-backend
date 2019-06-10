@@ -1,6 +1,8 @@
 use std::fmt;
 
-#[derive(Debug, Clone)]
+use serde::{ Serialize, Deserialize };
+
+#[derive(Serialize, Deserialize, Clone)]
 pub struct User {
     id: i32,
     name: String,

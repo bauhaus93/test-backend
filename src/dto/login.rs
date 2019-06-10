@@ -1,6 +1,7 @@
-
+use serde::{ Serialize, Deserialize };
 use super::User;
 
+#[derive(Serialize, Deserialize, Clone)]
 pub struct Login {
     user: User,
     password: String

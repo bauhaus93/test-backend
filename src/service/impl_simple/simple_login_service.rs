@@ -1,4 +1,3 @@
-use std::rc::Rc;
 use std::cell::RefCell;
 use std::sync::Mutex;
 use sha2::{ Sha512Trunc256, Digest };
