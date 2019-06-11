@@ -1,4 +1,4 @@
-use std::fmt;
+use std::{ fmt, io };
 use std::error::Error;
 use std::string::FromUtf8Error;
 use hyper;
@@ -9,10 +9,12 @@ use crate::presentation::PresentationError;
 #[derive(Debug)]
 pub enum ApplicationError {
     Presentation(PresentationError),
+    InvalidResponseName(String),
     Utf8(FromUtf8Error),
     Hyper(hyper::Error),
     HyperHttp(hyper::http::Error),
-    Json(serde_json::Error)
+    Json(serde_json::Error),
+    Io(io::Error)
 }
 
 impl From<PresentationError> for ApplicationError {
@@ -45,26 +47,36 @@ impl From<serde_json::Error> for ApplicationError {
     }
 }
 
+impl From<io::Error> for ApplicationError {
+    fn from(err: io::Error) -> ApplicationError {
+        ApplicationError::Io(err)
+    }
+}
+
 
 impl Error for ApplicationError {
 
     fn description(&self) -> &str {
         match *self {
             ApplicationError::Presentation(_) => "presentation",
+            ApplicationError::InvalidResponseName(_) => "invalid response name",
             ApplicationError::Utf8(_) => "utf8",
             ApplicationError::Hyper(_) => "hyper",
             ApplicationError::HyperHttp(_) => "http",
-            ApplicationError::Json(_) => "json"
+            ApplicationError::Json(_) => "json",
+            ApplicationError::Io(_) => "io",
         }
     }
 
     fn cause(&self) -> Option<&Error> {
         match *self {
             ApplicationError::Presentation(ref err) => Some(err),
+            ApplicationError::InvalidResponseName(_) => None,
             ApplicationError::Utf8(ref err) => Some(err),
             ApplicationError::Hyper(ref err) => Some(err),
             ApplicationError::HyperHttp(ref err) => Some(err),
-            ApplicationError::Json(ref err) => Some(err)
+            ApplicationError::Json(ref err) => Some(err),
+            ApplicationError::Io(ref err) => Some(err)
         }
     }
 }
@@ -73,10 +85,12 @@ impl fmt::Display for ApplicationError {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         match *self {
             ApplicationError::Presentation(ref err) => write!(f, "{}/{}", self.description(), err),
-            ApplicationError::Utf8(ref err) => write!(f, "{}/{}", self.description(), err),
+            ApplicationError::InvalidResponseName(ref name) => write!(f, "{}: {}", self.description(), name),
+            ApplicationError::Utf8(ref err) => write!(f, "{}: {}", self.description(), err),
             ApplicationError::Hyper(ref err) => write!(f, "{}/{}", self.description(), err),
             ApplicationError::HyperHttp(ref err) => write!(f, "{}/{}", self.description(), err),
-            ApplicationError::Json(ref err) => write!(f, "{}/{}", self.description(), err)
+            ApplicationError::Json(ref err) => write!(f, "{}: {}", self.description(), err),
+            ApplicationError::Io(ref err) => write!(f, "{}: {}", self.description(), err)
         }
     }
 }

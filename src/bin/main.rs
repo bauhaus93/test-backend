@@ -6,13 +6,13 @@ extern crate futures;
 extern crate test_backend;
 
 use std::sync::{ Arc, RwLock };
-use hyper::{ Server, Request, Response, Body };
+use hyper::{ Server, Request, Body };
 use hyper::service::{ service_fn, make_service_fn };
 use hyper::server::conn::AddrStream;
 use futures::{ Future };
 
 use test_backend::utility::init_logger;
-use test_backend::application::{ Application, respond_500 };
+use test_backend::application::{ Application, StaticResponse };
 
 fn main() {
     const SERVER_ADDR: &'static str = "127.0.0.1:12345";
@@ -20,13 +20,14 @@ fn main() {
 
     info!("Running server on {}", SERVER_ADDR);
     run_server(SERVER_ADDR); 
+    info!("Application finished");
 }
 
 fn run_server(addr: &str) {
     let addr = match addr.parse() {
             Ok(p) => p,
             Err(e) => {
-                error!("{}", e);
+                error!("Server address parsing failed: {}", e);
                 return;
             }
         };
@@ -34,7 +35,7 @@ fn run_server(addr: &str) {
     let app = match Application::new() {
         Ok(app) => Arc::new(RwLock::new(app)),
         Err(e) => {
-            error!("{}", e);
+            error!("Application creation failed: {}", e);
             return;
         }
     };
@@ -47,7 +48,7 @@ fn run_server(addr: &str) {
                     Ok(guard) => (*guard).request(req),
                     Err(_poisoned) => {
                         error!("RwLock poisoned!");
-                        respond_500()
+                        StaticResponse::fallback_500()
                     }
                 }
                 
