@@ -1,0 +1,80 @@
+{
+    "version": "2.0.0",
+    "tasks": [
+        {
+            "label": "run-release",
+            "type": "shell",
+            "linux": {
+                "command": "scripts/run_release.sh"
+            },
+            "problemMatcher": [
+                "$rustc"
+            ],
+            "presentation": {
+                "showReuseMessage": false,
+                "clear": true
+            }
+        },
+        {
+            "label": "run-debug",
+            "type": "shell",
+            "linux": {
+                "command": "scripts/run_debug.sh"
+            },
+            "problemMatcher": [
+                "$rustc"
+            ],
+            "presentation": {
+                "showReuseMessage": false,
+                "clear": true
+            },
+            "group": {
+                "kind": "build",
+                "isDefault": true
+            }
+        },
+        {
+            "label": "run-test",
+            "type": "shell",
+            "linux": {
+                "command": "scripts/run_test.sh"
+            },
+            "problemMatcher": [
+                "$rustc"
+            ],
+            "presentation": {
+                "showReuseMessage": false,
+                "clear": true
+            },
+            "group": {
+                "kind": "build",
+                "isDefault": true
+            }
+        },
+        {
+            "label": "pg-setup",
+            "type": "shell",
+            "linux": {
+                "command": "scripts/pg_setup.sh"
+            },
+            "presentation": {
+                "focus": true,
+                "showReuseMessage": false,
+                "clear": true
+            },
+            "problemMatcher": []
+        },         
+        {
+            "label": "pg-clear",
+            "type": "shell",
+            "linux": {
+                "command": "scripts/pg_clear.sh"
+            },
+            "presentation": {
+                "showReuseMessage": false,
+                "clear": true
+            },
+            "problemMatcher": []
+        }
+    ]
+}

@@ -16,14 +16,15 @@ use test_backend::application::{ Application, StaticResponse };
 
 fn main() {
     const SERVER_ADDR: &'static str = "127.0.0.1:12345";
+    const ASSET_FOLDER: &'static str = "assets/";
     init_logger();
 
     info!("Running server on {}", SERVER_ADDR);
-    run_server(SERVER_ADDR); 
+    run_server(SERVER_ADDR, ASSET_FOLDER); 
     info!("Application finished");
 }
 
-fn run_server(addr: &str) {
+fn run_server(addr: &str, asset_folder: &str) {
     let addr = match addr.parse() {
             Ok(p) => p,
             Err(e) => {
@@ -32,7 +33,7 @@ fn run_server(addr: &str) {
             }
         };
 
-    let app = match Application::new() {
+    let app = match Application::new(asset_folder) {
         Ok(app) => Arc::new(RwLock::new(app)),
         Err(e) => {
             error!("Application creation failed: {}", e);
@@ -59,5 +60,6 @@ fn run_server(addr: &str) {
     let server = Server::bind(&addr)
         .serve(make_service)
         .map_err(|e| error!("{}", e));
+    info!("Starting server");
     hyper::rt::run(server);
 }

@@ -35,13 +35,22 @@ impl StaticResponse {
         ))
     }
 
+
+
     pub fn fallback_500() -> ResponseFuture {
-        const FALLBACK_MSG: &str = "Bad stuff happened";
+        Self::fallback_response(500, "Bad stuff happened.")
+    }
+    
+    pub fn fallback_404() -> ResponseFuture {
+        Self::fallback_response(404, "Page does not exist.")
+    }
+
+    fn fallback_response(error_code: u16, error_msg: &'static str) -> ResponseFuture {
         let result = Response::builder()
-            .status(500)
+            .status(error_code)
             .header("Content-Type", "text/plain")
-            .header("Content-Length", FALLBACK_MSG.len())
-            .body(Body::from(FALLBACK_MSG));
+            .header("Content-Length", error_msg.len())
+            .body(Body::from(error_msg));
 
         Box::new(future::result(
             match result {
