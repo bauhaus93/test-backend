@@ -1,4 +1,3 @@
 target
-pg_cluster
+assets/
 *.lock
-*.log
