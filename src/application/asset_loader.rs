@@ -102,7 +102,7 @@ fn extract_filepath(entry: &fs::DirEntry) -> Option<String> {
 fn is_valid_file(entry: &fs::DirEntry) -> bool {
     match entry.file_type() {
         Ok(ft) if ft.is_file() => true,
-        Err(e) => {
+        Err(_e) => {
             if let Some(file_path) = extract_filepath(entry) {
                 warn!("Could not determine file type of file '{}'", file_path);
             } else {

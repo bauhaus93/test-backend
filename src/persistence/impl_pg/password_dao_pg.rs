@@ -27,7 +27,7 @@ impl PasswordDao for PasswordDaoPg {
         trace!("Preparing statement for adding password hash...");
         let guard = match self.connection.lock() {
             Ok(guard) => guard,
-            Err(poisoned) => return Err(DaoError::MutexPoisoned)
+            Err(_poisoned) => return Err(DaoError::MutexPoisoned)
         };
         let stmt = guard.prepare("
             INSERT INTO password (hash, salt, user_id) VALUES ($1, $2, $3)

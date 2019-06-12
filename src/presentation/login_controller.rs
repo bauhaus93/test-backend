@@ -1,6 +1,5 @@
 
-use hyper::{ Request, Response, Body, StatusCode, header };
-use futures::{ Future, Stream };
+use hyper::{ Request, Response, Body };
 
 use crate::application::StaticResponse;
 use crate::service::{ LoginService, SimpleLoginService };

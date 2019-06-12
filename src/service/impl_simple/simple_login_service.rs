@@ -32,7 +32,7 @@ impl SimpleLoginService {
             Ok(guard) => {
                 guard.borrow_mut().fill(&mut salt);
             },
-            Err(poisoned) => {
+            Err(_poisoned) => {
                 return Err(ServiceError::MutexPoisoned);
             }
         }

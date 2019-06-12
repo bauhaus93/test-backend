@@ -27,7 +27,7 @@ impl UserDao for UserDaoPg {
         trace!("Preparing statement for adding user...");
         let guard = match self.connection.lock() {
             Ok(guard) => guard,
-            Err(poisoned) => return Err(DaoError::MutexPoisoned)
+            Err(_poisoned) => return Err(DaoError::MutexPoisoned)
         };
         let stmt = guard.prepare("
             INSERT INTO user_ (name, email) VALUES ($1, $2)
@@ -48,7 +48,7 @@ impl UserDao for UserDaoPg {
     fn username_exists(&self, username: &str) -> Result<bool, DaoError> {
         let guard = match self.connection.lock() {
             Ok(guard) => guard,
-            Err(poisoned) => return Err(DaoError::MutexPoisoned)
+            Err(_poisoned) => return Err(DaoError::MutexPoisoned)
         };
         let stmt = guard.prepare("
             SELECT EXISTS(SELECT 1 FROM user_ WHERE name = $1)
@@ -60,7 +60,7 @@ impl UserDao for UserDaoPg {
     fn email_exists(&self, email: &str) -> Result<bool, DaoError> {
         let guard = match self.connection.lock() {
             Ok(guard) => guard,
-            Err(poisoned) => return Err(DaoError::MutexPoisoned)
+            Err(_poisoned) => return Err(DaoError::MutexPoisoned)
         };
  
         let stmt = guard.prepare("

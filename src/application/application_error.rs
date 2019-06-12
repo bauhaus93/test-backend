@@ -2,7 +2,6 @@ use std::{ fmt, io };
 use std::error::Error;
 use std::string::FromUtf8Error;
 use hyper;
-use serde_json;
 
 use crate::presentation::PresentationError;
 
