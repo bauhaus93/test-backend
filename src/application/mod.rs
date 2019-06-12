@@ -1,8 +1,9 @@
 
 pub mod application;
 pub mod application_error;
-pub mod response;
 pub mod static_response;
+mod response;
+
 
 mod read_file;
 mod asset_loader;

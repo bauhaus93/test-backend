@@ -9,7 +9,7 @@ use std::sync::{ Arc, RwLock };
 use hyper::{ Server, Request, Body };
 use hyper::service::{ service_fn, make_service_fn };
 use hyper::server::conn::AddrStream;
-use futures::{ Future };
+use futures::{ Future, future };
 
 use test_backend::utility::init_logger;
 use test_backend::application::{ Application, StaticResponse };
@@ -21,7 +21,7 @@ fn main() {
 
     info!("Running server on {}", SERVER_ADDR);
     run_server(SERVER_ADDR, ASSET_FOLDER); 
-    info!("Application finished");
+    info!("Server finished");
 }
 
 fn run_server(addr: &str, asset_folder: &str) {
@@ -49,7 +49,7 @@ fn run_server(addr: &str, asset_folder: &str) {
                     Ok(guard) => (*guard).request(req),
                     Err(_poisoned) => {
                         error!("RwLock poisoned!");
-                        StaticResponse::fallback_500()
+                        Box::new(future::result(Ok(StaticResponse::error_500())))
                     }
                 }
                 

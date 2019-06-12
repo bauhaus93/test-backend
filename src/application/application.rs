@@ -1,9 +1,8 @@
 use std::collections::BTreeMap;
-use hyper::{ Body, Response, Request, Method, StatusCode, header };
-use futures::{ Future, Stream };
+use hyper::{ Body, Response, Request, Method };
+use futures::future;
 
 use crate::presentation::LoginController;
-use crate::dto::Login;
 use super::{ ApplicationError, ResponseFuture, StaticResponse, load_assets };
 
 pub struct Application {
@@ -21,54 +20,63 @@ impl Application {
         Ok(app)
     }
 
-    fn create_asset_response(&self, name: &str) -> ResponseFuture {
+    pub fn request(&self, request: Request<Body>) -> ResponseFuture {
+        info!("Incoming request: method = '{}', uri = '{}'", request.method(), request.uri());
+        let result = match *request.method() {
+            Method::GET => self.handle_get(request),
+            Method::POST => self.handle_post(request),
+            _ => Ok(StaticResponse::error_405())
+        };
+        let response = result_to_response(result);
+        info!("Responding with status code = '{}'", response.status());
+        create_response_future(response)
+    }
+
+    fn create_response_from_asset(&self, name: &str) -> Result<Response<Body>, ApplicationError> {
         trace!("Creating response from asset: '{}'", name);
         match self.asset_map.get(name) {
             Some(r) => r.create_instance(),
-            None => {
-                error!("Missing asset: '{}'", name);
-                StaticResponse::fallback_500()
-            }
+            None => Err(ApplicationError::AssetNotExisting(name.to_owned()))
         }
     }
 
-    pub fn request(&self, request: Request<Body>) -> ResponseFuture {
-        info!("Request: method = '{}', uri = '{}'", request.method(), request.uri());
-        match *request.method() {
-            Method::GET => self.handle_get(request),
-            Method::POST => self.handle_post(request),
-            _ => StaticResponse::fallback_404()
-        }
-    }
-
-    fn handle_get(&self, request: Request<Body>) -> ResponseFuture {
+    fn handle_get(&self, request: Request<Body>) -> Result<Response<Body>, ApplicationError> {
         match request.uri().path() {
-            "/" => self.create_asset_response("index-html"),
-            "/custom.css" => self.create_asset_response("custom-css"),
-            "/main.js" => self.create_asset_response("main-js"),
-            _ => StaticResponse::fallback_404()
+            "/" => self.create_response_from_asset("index-html"),
+            "/custom.css" => self.create_response_from_asset("custom-css"),
+            "/main.js" => self.create_response_from_asset("main-js"),
+            _ => Ok(StaticResponse::error_404())
         }
     }
 
-    fn handle_post(&self, request: Request<Body>) -> ResponseFuture {
+    fn handle_post(&self, request: Request<Body>) -> Result<Response<Body>, ApplicationError> {
         match request.uri().path() {
             "/signup" => {
-                Box::new(
-                    request.into_body()
-                    .concat2()
-                    .from_err()
-                    .and_then(|body| {
-                        let content: Login = serde_json::from_slice(&body.to_vec())?;
-                        info!("Content = {}", content);
-
-                        let response = Response::builder()
-                            .status(StatusCode::OK)
-                            .header(header::CONTENT_TYPE, "text")
-                            .body(Body::from("LELEL"))?;
-                        Ok(response)
-                    }))
+                upgrade_error(self.login_controller.signup(request))
             },
-            _ => StaticResponse::fallback_404()
+            _ => Ok(StaticResponse::error_404())
         }
+    }
+}
+
+fn result_to_response<E: std::error::Error>(result: Result<Response<Body>, E>) -> Response<Body> {
+    match result {
+        Ok(response) => response,
+        Err(e) => {
+            error!("{}", e);
+            StaticResponse::error_500()
+        }
+    }
+}
+
+fn create_response_future(response: Response<Body>) -> ResponseFuture {
+    Box::new(future::result(Ok(response)))
+}
+
+fn upgrade_error<T, E>(result: Result<T, E>) -> Result<T, ApplicationError>
+where E: Into<ApplicationError> {
+    match result {
+        Ok(r) => Ok(r),
+        Err(e) => Err(e.into())
     }
 }

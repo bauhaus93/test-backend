@@ -10,10 +10,10 @@ use crate::presentation::PresentationError;
 pub enum ApplicationError {
     Presentation(PresentationError),
     InvalidResponseName(String),
+    AssetNotExisting(String),
     Utf8(FromUtf8Error),
     Hyper(hyper::Error),
     HyperHttp(hyper::http::Error),
-    Json(serde_json::Error),
     Io(io::Error)
 }
 
@@ -41,11 +41,6 @@ impl From<hyper::http::Error> for ApplicationError {
     }
 }
 
-impl From<serde_json::Error> for ApplicationError {
-    fn from(err: serde_json::Error) -> ApplicationError {
-        ApplicationError::Json(err)
-    }
-}
 
 impl From<io::Error> for ApplicationError {
     fn from(err: io::Error) -> ApplicationError {
@@ -60,11 +55,11 @@ impl Error for ApplicationError {
         match *self {
             ApplicationError::Presentation(_) => "presentation",
             ApplicationError::InvalidResponseName(_) => "invalid response name",
+            ApplicationError::AssetNotExisting(_) => "asset not existing",
             ApplicationError::Utf8(_) => "utf8",
             ApplicationError::Hyper(_) => "hyper",
             ApplicationError::HyperHttp(_) => "http",
-            ApplicationError::Json(_) => "json",
-            ApplicationError::Io(_) => "io",
+            ApplicationError::Io(_) => "io"
         }
     }
 
@@ -72,10 +67,10 @@ impl Error for ApplicationError {
         match *self {
             ApplicationError::Presentation(ref err) => Some(err),
             ApplicationError::InvalidResponseName(_) => None,
+            ApplicationError::AssetNotExisting(_) => None,
             ApplicationError::Utf8(ref err) => Some(err),
             ApplicationError::Hyper(ref err) => Some(err),
             ApplicationError::HyperHttp(ref err) => Some(err),
-            ApplicationError::Json(ref err) => Some(err),
             ApplicationError::Io(ref err) => Some(err)
         }
     }
@@ -86,10 +81,10 @@ impl fmt::Display for ApplicationError {
         match *self {
             ApplicationError::Presentation(ref err) => write!(f, "{}/{}", self.description(), err),
             ApplicationError::InvalidResponseName(ref name) => write!(f, "{}: {}", self.description(), name),
+            ApplicationError::AssetNotExisting(ref asset_name) => write!(f, "{}: {}", self.description(), asset_name),
             ApplicationError::Utf8(ref err) => write!(f, "{}: {}", self.description(), err),
             ApplicationError::Hyper(ref err) => write!(f, "{}/{}", self.description(), err),
             ApplicationError::HyperHttp(ref err) => write!(f, "{}/{}", self.description(), err),
-            ApplicationError::Json(ref err) => write!(f, "{}: {}", self.description(), err),
             ApplicationError::Io(ref err) => write!(f, "{}: {}", self.description(), err)
         }
     }
