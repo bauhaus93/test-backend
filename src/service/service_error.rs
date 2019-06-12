@@ -8,7 +8,8 @@ use super::LoginError;
 pub enum ServiceError {
     Persistence(DaoError),
     Login(LoginError),
-    MutexPoisoned
+    MutexPoisoned,
+    InsufficentData
 }
 
 impl From<DaoError> for ServiceError {
@@ -29,7 +30,8 @@ impl Error for ServiceError {
         match *self {
             ServiceError::Persistence(_) => "persistence",
             ServiceError::Login(_) => "login",
-            ServiceError::MutexPoisoned => "mutex poisoned"
+            ServiceError::MutexPoisoned => "mutex poisoned",
+            ServiceError::InsufficentData => "insufficient data"
         }
     }
 
@@ -37,7 +39,8 @@ impl Error for ServiceError {
         match *self {
             ServiceError::Persistence(ref err) => Some(err),
             ServiceError::Login(ref err) => Some(err),
-            ServiceError::MutexPoisoned => None
+            ServiceError::MutexPoisoned => None,
+            ServiceError::InsufficentData => None
         }
     }
 }
@@ -47,7 +50,8 @@ impl fmt::Display for ServiceError {
         match *self {
             ServiceError::Persistence(ref err) => write!(f, "{}/{}", self.description(), err),
             ServiceError::Login(ref err) => write!(f, "{}/{}", self.description(), err),
-            ServiceError::MutexPoisoned => write!(f, "{}", self.description())
+            ServiceError::MutexPoisoned => write!(f, "{}", self.description()),
+            ServiceError::InsufficentData => write!(f, "{}", self.description())
         }
     }
 }
