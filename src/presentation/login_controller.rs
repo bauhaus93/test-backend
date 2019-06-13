@@ -1,4 +1,3 @@
-
 use hyper::{ Request, Response, Body };
 
 use crate::application::StaticResponse;

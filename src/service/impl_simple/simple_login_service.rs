@@ -83,7 +83,7 @@ impl LoginService for SimpleLoginService {
         password_hash.set_user_id(user.get_id());
         self.password_dao.add_password_hash(password_hash)?;
 
-        Ok(Session{})
+        Ok(Session::default())
     }
 }
 
