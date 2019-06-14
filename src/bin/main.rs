@@ -9,7 +9,7 @@ use std::sync::{ Arc, RwLock };
 use hyper::{ Server, Request, Body };
 use hyper::service::{ service_fn, make_service_fn };
 use hyper::server::conn::AddrStream;
-use futures::{ Future, future };
+use futures::Future;
 
 use test_backend::utility::init_logger;
 use test_backend::application::{ Application, StaticResponse };

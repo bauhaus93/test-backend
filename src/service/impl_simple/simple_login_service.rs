@@ -12,7 +12,8 @@ use crate::service::{ ServiceError, LoginError, LoginService };
 pub struct SimpleLoginService {
     rng: Mutex<RefCell<StdRng>>,
     user_dao: Box<UserDao>,
-    password_dao: Box<PasswordDao>
+    password_dao: Box<PasswordDao>,
+    session_dao: Box<SessionDao>
 }
 
 impl SimpleLoginService {
@@ -53,6 +54,20 @@ impl SimpleLoginService {
 
         Ok(password_hash)
     }
+
+    fn generate_session_id(&self) -> Result<[u8; 16], ServiceError> {
+        let mut session_id: [u8; 16] = [0; 16];
+        
+        match self.rng.lock() {
+            Ok(guard) => {
+                guard.borrow_mut().fill(&mut session_id);
+            },
+            Err(_poisoned) => {
+                return Err(ServiceError::MutexPoisoned);
+            }
+        }
+        Ok(session_id)
+    }
 }
 
 impl LoginService for SimpleLoginService {
@@ -83,6 +98,14 @@ impl LoginService for SimpleLoginService {
         password_hash.set_user_id(user.get_id());
         self.password_dao.add_password_hash(password_hash)?;
 
+        self.signin(login)
+    }
+
+    fn signin(&self, login: Login) -> Result<Session, ServiceError> {
+        let session_id = self.generate_session_id()?;
+        let mut session = Session::default();
+        session.set_id(session_id);
+        session.set_user_id(login.get_user().get_id());
         Ok(Session::default())
     }
 }

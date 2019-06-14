@@ -1,4 +1,4 @@
-use hyper::{ Response, Request, Body, StatusCode };
+use hyper::{ Response, Body, StatusCode };
 use serde::{ Serialize, Deserialize };
 use serde_json;
 

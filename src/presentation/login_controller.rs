@@ -1,10 +1,9 @@
 use std::sync::Arc;
-use hyper::{ Request, Response, Body };
+use hyper::{ Request, Body };
 use futures::{ Future, Stream };
 
-use crate::application::{ StaticResponse, ResponseFuture, create_response_future };
+use crate::application::{ StaticResponse, ResponseFuture };
 use crate::service::{ ServiceError, LoginService, SimpleLoginService };
-use crate::dto::Login;
 use super::{ PresentationError, create_json_response, parse_json };
 
 pub struct LoginController {
