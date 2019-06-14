@@ -49,7 +49,7 @@ fn run_server(addr: &str, asset_folder: &str) {
                     Ok(guard) => (*guard).request(req),
                     Err(_poisoned) => {
                         error!("RwLock poisoned!");
-                        Box::new(future::result(Ok(StaticResponse::error_500())))
+                        StaticResponse::error_500_future()
                     }
                 }
                 
