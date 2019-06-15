@@ -25,10 +25,7 @@ impl UserDaoPg {
 impl UserDao for UserDaoPg {
     fn add_user(&self, mut user: User) -> Result<User, DaoError> {
         trace!("Preparing statement for adding user...");
-        let guard = match self.connection.lock() {
-            Ok(guard) => guard,
-            Err(_poisoned) => return Err(DaoError::MutexPoisoned)
-        };
+        let guard = self.connection.lock().or_else(|_p| return Err(DaoError::MutexPoisoned)).unwrap();
         let stmt = guard.prepare("
             INSERT INTO user_ (name, email) VALUES ($1, $2)
             RETURNING id
@@ -45,12 +42,22 @@ impl UserDao for UserDaoPg {
         Ok(user)
     }
 
+    fn delete_user_by_id(&self, user_id: i32) -> Result<(), DaoError> {
+        trace!("Preparing statement for deleting user...");
+        let guard = self.connection.lock().or_else(|_p| return Err(DaoError::MutexPoisoned)).unwrap();
+
+        let stmt = guard.prepare("
+            DELETE
+            FROM user_
+            WHERE user_.id=$1
+        ")?;
+        stmt.execute(&[&user_id])?;
+        Ok(())
+    }
+
     fn get_user_by_name(&self, username: &str) -> Result<User, DaoError> {
         trace!("Preparing statement for getting user...");
-        let guard = match self.connection.lock() {
-            Ok(guard) => guard,
-            Err(_poisoned) => return Err(DaoError::MutexPoisoned)
-        };
+        let guard = self.connection.lock().or_else(|_p| return Err(DaoError::MutexPoisoned)).unwrap();
         let stmt = guard.prepare("
             SELECT id, name, email
             FROM user_
@@ -80,10 +87,7 @@ impl UserDao for UserDaoPg {
         Ok(exists)
     }
     fn email_exists(&self, email: &str) -> Result<bool, DaoError> {
-        let guard = match self.connection.lock() {
-            Ok(guard) => guard,
-            Err(_poisoned) => return Err(DaoError::MutexPoisoned)
-        };
+        let guard = self.connection.lock().or_else(|_p| return Err(DaoError::MutexPoisoned)).unwrap();
  
         let stmt = guard.prepare("
             SELECT EXISTS(SELECT 1 FROM user_ WHERE email = $1)

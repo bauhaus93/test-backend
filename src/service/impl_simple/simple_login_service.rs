@@ -89,15 +89,28 @@ impl LoginService for SimpleLoginService {
             return Err(LoginError::InvalidPassword.into());
         }
 
-        let mut password_hash = self.create_salted_password_hash(login.get_password())?;
-        
-        // TODO: handle users without password
-        let user = self.user_dao.add_user(user.clone())?;
+        let new_user = self.user_dao.add_user(user.clone())?;
 
-        password_hash.set_user_id(user.get_id());
-        self.password_dao.add_password_hash(password_hash)?;
-
-        self.signin(login)
+        match self.create_salted_password_hash(login.get_password()) {
+            Ok(mut pw_hash) => {
+                pw_hash.set_user_id(new_user.get_id());
+                match self.password_dao.add_password_hash(pw_hash) {
+                    Ok(_) => self.signin(login),
+                    Err(add_pw_err) => { // user was created, but password entry could not be added
+                        if let Err(del_user_err) = self.user_dao.delete_user_by_id(new_user.get_id()) {
+                            error!("Could not delete user without password: {}", del_user_err);
+                        }
+                        Err(add_pw_err.into())
+                    }
+                }
+            },
+            Err(hash_creation_err) => { // user was created, but password hash could not be created
+                if let Err(del_user_err) = self.user_dao.delete_user_by_id(new_user.get_id()) {
+                    error!("Could not delete user without password: {}", del_user_err);
+                }
+                Err(hash_creation_err.into())
+            }
+        }     
     }
 
     fn signin(&self, login: Login) -> Result<Session, ServiceError> {
@@ -111,7 +124,7 @@ impl LoginService for SimpleLoginService {
         let salt = saved_hash.get_salt();
         let input_hash = calculate_hash(login.get_password(), &salt);
 
-        if equal_hashes(saved_hash.get_hash(), &input_hash) {
+        if hashes_equal(saved_hash.get_hash(), &input_hash) {
             let session_id = self.generate_session_id()?;
             let mut session = Session::default();
             session.set_id(&session_id);
@@ -126,7 +139,7 @@ impl LoginService for SimpleLoginService {
     }
 }
 
-fn equal_hashes(hash_a: &[u8], hash_b: &[u8]) -> bool {
+fn hashes_equal(hash_a: &[u8], hash_b: &[u8]) -> bool {
     debug_assert!(hash_a.len() == hash_b.len());
     hash_a == hash_b
 }
