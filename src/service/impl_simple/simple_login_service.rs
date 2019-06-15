@@ -131,6 +131,7 @@ impl LoginService for SimpleLoginService {
             session.set_user_id(user_id);
             self.session_dao.add_session(session.clone())?;
             info!("New session: user = '{}', session_id = '{}'", login.get_user().get_name(), session.get_id());
+            session.set_user_id(0); // Don't expose internal user id
             Ok(session)
         } else {
             info!("Password hashes were not equal, no session for '{}' created.", login.get_user().get_name());
@@ -178,46 +179,46 @@ fn is_strong_password(password: &str) -> bool {
 
 #[cfg(test)]
 mod tests {
-    use super::check_password_strength;
+    use super::is_strong_password;
 
     #[test]
     fn password_strength_empty_password() {
-        assert_eq!(false, check_password_strength(""));
+        assert_eq!(false, is_strong_password(""));
     }
     #[test]
     fn password_strength_only_alphabetic() {
-        assert_eq!(false, check_password_strength("abcdefgh"));
+        assert_eq!(false, is_strong_password("abcdefgh"));
     }
     #[test]
     fn password_strength_only_alphabetic_lower_case() {
-        assert_eq!(false, check_password_strength("abcdefgh"));
+        assert_eq!(false, is_strong_password("abcdefgh"));
     }
     #[test]
     fn password_strength_only_alphabetic_upper_case() {
-        assert_eq!(false, check_password_strength("ABCDEFGH"));
+        assert_eq!(false, is_strong_password("ABCDEFGH"));
     }
     #[test]
     fn password_strength_only_alphabetic_mixed_case() {
-        assert_eq!(false, check_password_strength("AbCdeFgH"));
+        assert_eq!(false, is_strong_password("AbCdeFgH"));
     }
     #[test]
     fn password_strength_only_alphanumeric_mixed_case() {
-        assert_eq!(false, check_password_strength("Ab7CeF3H"));
+        assert_eq!(false, is_strong_password("Ab7CeF3H"));
     }
     #[test]
     fn password_strength_only_digits() {
-        assert_eq!(false, check_password_strength("01234567"));
+        assert_eq!(false, is_strong_password("01234567"));
     }
     #[test]
     fn password_strength_too_short() {
-        assert_eq!(false, check_password_strength("Ab[9"));
+        assert_eq!(false, is_strong_password("Ab[9"));
     }
     #[test]
     fn password_non_ascii() {
-        assert_eq!(false, check_password_strength("Ab[9ee3´"));
+        assert_eq!(false, is_strong_password("Ab[9ee3´"));
     }
     #[test]
     fn password_strength_valid() {
-        assert_eq!(true, check_password_strength("Ab[9ee371#"));
+        assert_eq!(true, is_strong_password("Ab[9ee371#"));
     }
 }

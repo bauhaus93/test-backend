@@ -4,6 +4,7 @@ use serde::{ Serialize, Deserialize };
 #[derive(Serialize, Deserialize, Clone)]
 pub struct Session {
     id: String,
+    #[serde(skip_serializing, skip_deserializing)]
     user_id: i32
 }
 

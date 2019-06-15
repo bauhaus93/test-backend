@@ -36,7 +36,26 @@ impl LoginController {
             })
             .map_err(|e| e.into())
         )
-    }  
+    }
+
+    pub fn signin(&self, request: Request<Body>) -> ResponseFuture {
+        let login_service = self.login_service.clone();
+        Box::new(request.into_body().concat2()
+            .map_err(|e| PresentationError::from(e))
+            .and_then(|body| parse_json(body.to_vec().as_slice()))
+            .and_then(move |login| {
+                match login_service.signin(login) {
+                    Ok(session) => create_json_response(&session),
+                    Err(ServiceError::InsufficentData) => Ok(StaticResponse::error_400()),
+                    Err(e) => {
+                        error!("Signin error: {}", e);
+                        Ok(StaticResponse::error_500())
+                    }
+                }
+            })
+            .map_err(|e| e.into())
+        )
+    }
 
 }
 

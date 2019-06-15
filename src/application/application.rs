@@ -51,6 +51,7 @@ impl Application {
     fn handle_post(&self, request: Request<Body>) -> ResponseFuture {
         match request.uri().path() {
             "/signup" => self.login_controller.signup(request),
+            "/signin" => self.login_controller.signin(request),
             _ => StaticResponse::error_404_future()
         }
     }

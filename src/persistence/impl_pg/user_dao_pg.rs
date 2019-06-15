@@ -65,13 +65,17 @@ impl UserDao for UserDaoPg {
         ")?;
         let rows = stmt.query(&[&username])?;
 
-        let row = rows.get(0);
-        let mut user = User::default();
-        user.set_id(row.get(0));
-        user.set_name(&row.get::<_, String>(1));
-        user.set_email(&row.get::<_, String>(2));
+        if rows.len() == 0 {
+            Err(DaoError::EntryNotFound("user_".to_owned(), "name".to_owned(), username.to_owned()))
+        } else {
+            let row = rows.get(0);
+            let mut user = User::default();
+            user.set_id(row.get(0));
+            user.set_name(&row.get::<_, String>(1));
+            user.set_email(&row.get::<_, String>(2));
 
-        Ok(user)
+            Ok(user)
+        }
     }
 
     fn username_exists(&self, username: &str) -> Result<bool, DaoError> {
