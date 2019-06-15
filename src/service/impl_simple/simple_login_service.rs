@@ -1,6 +1,7 @@
 use std::cell::RefCell;
 use std::sync::Mutex;
 use sha2::{ Sha512Trunc256, Digest };
+use base64;
 
 use rand::{ Rng, FromEntropy };
 use rand::rngs::StdRng;
@@ -52,8 +53,8 @@ impl SimpleLoginService {
         Ok(salt)
     }
 
-    fn generate_session_id(&self) -> Result<[u8; 16], ServiceError> {
-        let mut session_id: [u8; 16] = [0; 16];
+    fn generate_session_id(&self) -> Result<String, ServiceError> {
+        let mut session_id: [u8; 32] = [0; 32];
         
         match self.rng.lock() {
             Ok(guard) => {
@@ -63,13 +64,13 @@ impl SimpleLoginService {
                 return Err(ServiceError::MutexPoisoned);
             }
         }
-        Ok(session_id)
+        Ok(base64::encode(&session_id))
     }
 }
 
 impl LoginService for SimpleLoginService {
     fn signup(&self, login: Login) -> Result<Session, ServiceError> {
-        info!("Signing up user: {}", login.get_user());
+        info!("Signing up: {}", login.get_user());
         let user = login.get_user();
 
         if user.get_name().is_empty() {
@@ -100,7 +101,7 @@ impl LoginService for SimpleLoginService {
     }
 
     fn signin(&self, login: Login) -> Result<Session, ServiceError> {
-        info!("Signing in user: {}", login.get_user());
+        info!("Signing in: {}", login.get_user());
         let user_id = match login.get_user().get_name() {
             name if name.len() > 0 => self.user_dao.get_user_by_name(name)?.get_id(),
             _ => return Err(LoginError::NeedUsername.into())
@@ -111,14 +112,15 @@ impl LoginService for SimpleLoginService {
         let input_hash = calculate_hash(login.get_password(), &salt);
 
         if equal_hashes(saved_hash.get_hash(), &input_hash) {
-            info!("Password hashes are equal, creating session for user...");
             let session_id = self.generate_session_id()?;
             let mut session = Session::default();
-            session.set_id(session_id);
+            session.set_id(&session_id);
             session.set_user_id(user_id);
             self.session_dao.add_session(session.clone())?;
+            info!("New session: user = '{}', session_id = '{}'", login.get_user().get_name(), session.get_id());
             Ok(session)
         } else {
+            info!("Password hashes were not equal, no session for '{}' created.", login.get_user().get_name());
             Err(LoginError::IncorrectPassword.into())
         }
     }

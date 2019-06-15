@@ -9,6 +9,7 @@ extern crate postgres;
 extern crate sha2;
 extern crate serde;
 extern crate serde_json;
+extern crate base64;
 
 pub mod application;
 pub mod presentation;
