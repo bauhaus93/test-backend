@@ -85,7 +85,7 @@ impl LoginService for SimpleLoginService {
             return Err(LoginError::ExistingEmail.into());
         }
 
-        if check_password_strength(login.get_password()) {
+        if !is_strong_password(login.get_password()) {
             return Err(LoginError::WeakPassword.into());
         }
 
@@ -156,7 +156,7 @@ fn calculate_hash(password: &str, salt: &[u8]) -> [u8; 32] {
     hash
 }
 
-fn check_password_strength(password: &str) -> bool {
+fn is_strong_password(password: &str) -> bool {
     if password.len() < 8 {
         return false;
     }
