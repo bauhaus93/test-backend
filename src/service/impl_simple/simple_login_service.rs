@@ -6,7 +6,7 @@ use rand::{ Rng, FromEntropy };
 use rand::rngs::StdRng;
 
 use crate::dto::{ Login, Session, PasswordHash };
-use crate::persistence::{ UserDao, PasswordDao, UserDaoPg, PasswordDaoPg };
+use crate::persistence::{ UserDao, PasswordDao, SessionDao, UserDaoPg, PasswordDaoPg, SessionDaoPg };
 use crate::service::{ ServiceError, LoginError, LoginService };
 
 pub struct SimpleLoginService {
@@ -21,12 +21,24 @@ impl SimpleLoginService {
         let service = SimpleLoginService {
             rng: Mutex::new(RefCell::new(StdRng::from_entropy())),
             user_dao: Box::new(UserDaoPg::new()?),
-            password_dao: Box::new(PasswordDaoPg::new()?)
+            password_dao: Box::new(PasswordDaoPg::new()?),
+            session_dao: Box::new(SessionDaoPg::new()?)
         };
         Ok(service)
     }
 
     fn create_salted_password_hash(&self, password: &str) -> Result<PasswordHash, ServiceError> {
+        let salt = self.generate_salt()?;
+        let hash = calculate_hash(password, &salt);
+
+        let mut password_hash = PasswordHash::default();
+        password_hash.set_hash(&hash);
+        password_hash.set_salt(&salt);
+
+        Ok(password_hash)
+    }
+
+    fn generate_salt(&self) -> Result<[u8; 16], ServiceError> {
         let mut salt: [u8; 16] = [0; 16];
         
         match self.rng.lock() {
@@ -37,22 +49,7 @@ impl SimpleLoginService {
                 return Err(ServiceError::MutexPoisoned);
             }
         }
-                
-
-        let mut hasher = Sha512Trunc256::new();
-        hasher.input(password);
-        hasher.input(salt);
-
-        let mut hash: [u8; 32] = [0; 32];
-        for (byte, output) in hash.iter_mut().zip(hasher.result().iter()) {
-            *byte = *output;
-        }
-
-        let mut password_hash = PasswordHash::default();
-        password_hash.set_hash(hash);
-        password_hash.set_salt(salt);
-
-        Ok(password_hash)
+        Ok(salt)
     }
 
     fn generate_session_id(&self) -> Result<[u8; 16], ServiceError> {
@@ -72,6 +69,7 @@ impl SimpleLoginService {
 
 impl LoginService for SimpleLoginService {
     fn signup(&self, login: Login) -> Result<Session, ServiceError> {
+        info!("Signing up user: {}", login.get_user());
         let user = login.get_user();
 
         if user.get_name().is_empty() {
@@ -102,12 +100,45 @@ impl LoginService for SimpleLoginService {
     }
 
     fn signin(&self, login: Login) -> Result<Session, ServiceError> {
-        let session_id = self.generate_session_id()?;
-        let mut session = Session::default();
-        session.set_id(session_id);
-        session.set_user_id(login.get_user().get_id());
-        Ok(Session::default())
+        info!("Signing in user: {}", login.get_user());
+        let user_id = match login.get_user().get_name() {
+            name if name.len() > 0 => self.user_dao.get_user_by_name(name)?.get_id(),
+            _ => return Err(LoginError::NeedUsername.into())
+        };
+
+        let saved_hash = self.password_dao.get_password_hash_by_user_id(user_id)?;
+        let salt = saved_hash.get_salt();
+        let input_hash = calculate_hash(login.get_password(), &salt);
+
+        if equal_hashes(saved_hash.get_hash(), &input_hash) {
+            info!("Password hashes are equal, creating session for user...");
+            let session_id = self.generate_session_id()?;
+            let mut session = Session::default();
+            session.set_id(session_id);
+            session.set_user_id(user_id);
+            self.session_dao.add_session(session.clone())?;
+            Ok(session)
+        } else {
+            Err(LoginError::IncorrectPassword.into())
+        }
     }
+}
+
+fn equal_hashes(hash_a: &[u8], hash_b: &[u8]) -> bool {
+    debug_assert!(hash_a.len() == hash_b.len());
+    hash_a == hash_b
+}
+
+fn calculate_hash(password: &str, salt: &[u8]) -> [u8; 32] {
+    let mut hasher = Sha512Trunc256::new();
+    hasher.input(password);
+    hasher.input(salt);
+
+    let mut hash: [u8; 32] = [0; 32];
+    for (byte, output) in hash.iter_mut().zip(hasher.result().iter()) {
+        *byte = *output;
+    }
+    hash
 }
 
 fn check_password_strength(password: &str) -> bool {

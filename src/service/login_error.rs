@@ -7,7 +7,9 @@ pub enum LoginError {
     InvalidEmail,
     InvalidPassword,
     ExistingName,
-    ExistingEmail
+    ExistingEmail,
+    NeedUsername,
+    IncorrectPassword
 }
 
 impl Error for LoginError {
@@ -18,7 +20,9 @@ impl Error for LoginError {
             LoginError::InvalidEmail => "invalid email",
             LoginError::InvalidPassword => "invalid password",
             LoginError::ExistingName => "existing name",
-            LoginError::ExistingEmail => "existing email"
+            LoginError::ExistingEmail => "existing email",
+            LoginError::NeedUsername => "need username",
+            LoginError::IncorrectPassword => "incorrect password"
         }
     }
 

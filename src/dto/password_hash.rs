@@ -11,11 +11,11 @@ impl PasswordHash {
     pub fn set_user_id(&mut self, user_id: i32) {
         self.user_id = user_id;
     }
-    pub fn set_hash(&mut self, hash: [u8; 32]) {
-        self.hash = hash;
+    pub fn set_hash(&mut self, hash: &[u8]) {
+        self.hash.clone_from_slice(hash);
     }
-    pub fn set_salt(&mut self, salt: [u8; 16]) {
-        self.salt = salt;
+    pub fn set_salt(&mut self, salt: &[u8]) {
+        self.salt.clone_from_slice(salt);
     }
 
     pub fn get_user_id(&self) -> i32 {

@@ -14,6 +14,12 @@ impl Session {
     pub fn set_user_id(&mut self, user_id: i32) {
         self.user_id = user_id;
     }
+    pub fn get_id(&self) -> &[u8] {
+        &self.id
+    }
+    pub fn get_user_id(&self) -> i32 {
+        self.user_id
+    }
 }
 
 impl Default for Session {

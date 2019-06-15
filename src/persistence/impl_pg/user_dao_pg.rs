@@ -45,6 +45,28 @@ impl UserDao for UserDaoPg {
         Ok(user)
     }
 
+    fn get_user_by_name(&self, username: &str) -> Result<User, DaoError> {
+        trace!("Preparing statement for getting user...");
+        let guard = match self.connection.lock() {
+            Ok(guard) => guard,
+            Err(_poisoned) => return Err(DaoError::MutexPoisoned)
+        };
+        let stmt = guard.prepare("
+            SELECT id, name, email
+            FROM user_
+            WHERE user_.name=$1
+        ")?;
+        let rows = stmt.query(&[&username])?;
+
+        let row = rows.get(0);
+        let mut user = User::default();
+        user.set_id(row.get(0));
+        user.set_name(&row.get::<_, String>(1));
+        user.set_email(&row.get::<_, String>(2));
+
+        Ok(user)
+    }
+
     fn username_exists(&self, username: &str) -> Result<bool, DaoError> {
         let guard = match self.connection.lock() {
             Ok(guard) => guard,
