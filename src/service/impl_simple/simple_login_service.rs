@@ -86,7 +86,7 @@ impl LoginService for SimpleLoginService {
         }
 
         if check_password_strength(login.get_password()) {
-            return Err(LoginError::InvalidPassword.into());
+            return Err(LoginError::WeakPassword.into());
         }
 
         let new_user = self.user_dao.add_user(user.clone())?;

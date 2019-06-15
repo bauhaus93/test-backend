@@ -5,7 +5,7 @@ use std::error::Error;
 pub enum LoginError {
     InvalidName,
     InvalidEmail,
-    InvalidPassword,
+    WeakPassword,
     ExistingName,
     ExistingEmail,
     NeedUsername,
@@ -18,7 +18,7 @@ impl Error for LoginError {
         match *self {
             LoginError::InvalidName => "invalid name",
             LoginError::InvalidEmail => "invalid email",
-            LoginError::InvalidPassword => "invalid password",
+            LoginError::WeakPassword => "weak password",
             LoginError::ExistingName => "existing name",
             LoginError::ExistingEmail => "existing email",
             LoginError::NeedUsername => "need username",
