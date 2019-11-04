@@ -12,19 +12,18 @@ use hyper::server::conn::AddrStream;
 use futures::Future;
 
 use test_backend::utility::init_logger;
-use test_backend::application::{ Application, StaticResponse };
+use test_backend::application::{ Application, static_response };
 
 fn main() {
-    const SERVER_ADDR: &'static str = "127.0.0.1:12345";
-    const ASSET_FOLDER: &'static str = "assets/";
+    const SERVER_ADDR: &'static str = "127.0.0.1:12001";
     init_logger();
 
     info!("Running server on {}", SERVER_ADDR);
-    run_server(SERVER_ADDR, ASSET_FOLDER); 
+    run_server(SERVER_ADDR); 
     info!("Server finished");
 }
 
-fn run_server(addr: &str, asset_folder: &str) {
+fn run_server(addr: &str) {
     let addr = match addr.parse() {
             Ok(p) => p,
             Err(e) => {
@@ -33,7 +32,7 @@ fn run_server(addr: &str, asset_folder: &str) {
             }
         };
 
-    let app = match Application::new(asset_folder) {
+    let app = match Application::new() {
         Ok(app) => Arc::new(RwLock::new(app)),
         Err(e) => {
             error!("Application creation failed: {}", e);
@@ -49,7 +48,7 @@ fn run_server(addr: &str, asset_folder: &str) {
                     Ok(guard) => (*guard).request(req),
                     Err(_poisoned) => {
                         error!("RwLock poisoned!");
-                        StaticResponse::error_500_future()
+                        static_response::error_500_future()
                     }
                 }
                 

@@ -2,7 +2,7 @@ use std::sync::Arc;
 use hyper::{ Request, Body };
 use futures::{ Future, Stream };
 
-use crate::application::{ StaticResponse, ResponseFuture };
+use crate::application::{ ResponseFuture, static_response };
 use crate::service::{ ServiceError, LoginService, SimpleLoginService };
 use super::{ PresentationError, create_json_response, parse_json };
 
@@ -27,10 +27,10 @@ impl LoginController {
             .and_then(move |login| {
                 match login_service.signup(login) {
                     Ok(session) => create_json_response(&session),
-                    Err(ServiceError::InsufficentData) => Ok(StaticResponse::error_400()),
+                    Err(ServiceError::InsufficentData) => Ok(static_response::error_400()),
                     Err(e) => {
                         error!("Signup error: {}", e);
-                        Ok(StaticResponse::error_500())
+                        Ok(static_response::error_500())
                     }
                 }
             })
@@ -46,10 +46,10 @@ impl LoginController {
             .and_then(move |login| {
                 match login_service.signin(login) {
                     Ok(session) => create_json_response(&session),
-                    Err(ServiceError::InsufficentData) => Ok(StaticResponse::error_400()),
+                    Err(ServiceError::InsufficentData) => Ok(static_response::error_400()),
                     Err(e) => {
                         error!("Signin error: {}", e);
-                        Ok(StaticResponse::error_500())
+                        Ok(static_response::error_500())
                     }
                 }
             })
