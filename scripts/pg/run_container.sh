@@ -15,4 +15,6 @@ docker run \
 	--mount source=$VOLUMNE_NAME,target=/var/lib/postgresql/data \
 	-p 5432:5432 \
 	-u postgres \
+	-e POSTGRES_USER="postgres" \
+	-e POSTGRES_PASSWORD="secret" \
 	$IMAGE_NAME \
