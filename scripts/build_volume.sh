@@ -1,6 +1,6 @@
 #!/bin/sh
 
-PATH_ENV="scripts/pg/env.sh"
+PATH_ENV="scripts/env.sh"
 if [ ! -f $PATH_ENV ]
 then
         echo "Script not found: $PATH_ENV"
