@@ -1,0 +1,22 @@
+version: '3'
+
+services:
+    postgres:
+        image: backend-postgres:latest
+        build:
+            dockerfile: docker/postgresql/Dockerfile
+            context: postgresql/
+        ports:
+            - "5432:5432"
+        volumes:
+            - vol-pg-data:/var/lib/postgresql/data
+    
+    server:
+        image: backend-server:latest
+        build:
+             dockerfile: docker/server/Dockerfile
+             context: server/
+        ports:
+            - "1001:1001"
+volumes:
+    vol-pg-data:
