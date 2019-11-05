@@ -3,13 +3,23 @@ version: '3'
 services:
     postgres:
         image: backend-postgres:latest
-        build: postgresql
+        build: postgresql/
         ports:
             - "5432:5432"
         networks:
             - backend
         volumes:
-            - vol-pg-data:/var/lib/postgresql/data
+            - vol-pg-data: /var/lib/postgresql/data
+    frontend:
+        image: frontend-nginx:latest
+        build: nginx/
+        ports:
+            - "80:80"
+        networks:
+            - frontend
+            - backend
+        volumes:
+            - vol-log: /var/log/nginx
     
     server:
         image: backend-server:latest
@@ -20,7 +30,11 @@ services:
             - backend
 volumes:
     vol-pg-data:
+    vol-log:
+    vol-www:
 
 networks:
     backend:
         driver: "bridge"
+    frontend:
+        diver: "bridge"
