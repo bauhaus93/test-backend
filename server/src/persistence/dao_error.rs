@@ -16,7 +16,6 @@ impl From<postgres::Error> for DaoError {
     }
 }
 
-
 impl Error for DaoError {
 
     fn description(&self) -> &str {

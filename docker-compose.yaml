@@ -3,20 +3,24 @@ version: '3'
 services:
     postgres:
         image: backend-postgres:latest
-        build:
-            dockerfile: docker/postgresql/Dockerfile
-            context: postgresql/
+        build: postgresql
         ports:
             - "5432:5432"
+        networks:
+            - backend
         volumes:
             - vol-pg-data:/var/lib/postgresql/data
     
     server:
         image: backend-server:latest
-        build:
-             dockerfile: docker/server/Dockerfile
-             context: server/
+        build: server/
         ports:
             - "1001:1001"
+        networks:
+            - backend
 volumes:
     vol-pg-data:
+
+networks:
+    backend:
+        driver: "bridge"

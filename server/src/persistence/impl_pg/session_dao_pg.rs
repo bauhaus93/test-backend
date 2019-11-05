@@ -5,6 +5,7 @@ use crate::dto::Session;
 use crate::persistence::SessionDao;
 use crate::persistence::DaoError;
 use super::pg_params::PG_PARAMS;
+use super::try_connect;
 
 pub struct SessionDaoPg {
     connection: Mutex<Connection>
@@ -12,8 +13,7 @@ pub struct SessionDaoPg {
 
 impl SessionDaoPg {
     pub fn new() -> Result<SessionDaoPg, DaoError> {
-        trace!("Connecting to db with '{}'...", PG_PARAMS);
-        let connection = Connection::connect(PG_PARAMS, TlsMode::None)?;
+        let connection = try_connect(PG_PARAMS, 3)?;
 
         let dao = SessionDaoPg {
             connection: Mutex::new(connection)
