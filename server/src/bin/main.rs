@@ -15,7 +15,7 @@ use test_backend::utility::init_logger;
 use test_backend::application::{ Application, static_response };
 
 fn main() {
-    const SERVER_ADDR: &'static str = "127.0.0.1:10001";
+    const SERVER_ADDR: &'static str = "172.16.11.11:10001";
     init_logger();
 
     info!("Running server on {}", SERVER_ADDR);
