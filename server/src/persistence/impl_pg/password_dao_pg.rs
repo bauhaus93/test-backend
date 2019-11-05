@@ -13,7 +13,7 @@ pub struct PasswordDaoPg {
 
 impl PasswordDaoPg {
     pub fn new() -> Result<PasswordDaoPg, DaoError> {
-        let connection = try_connect(PG_PARAMS, 3)?;
+        let connection = try_connect(PG_PARAMS)?;
 
         let dao = PasswordDaoPg {
             connection: Mutex::new(connection),
