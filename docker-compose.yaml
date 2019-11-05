@@ -15,7 +15,7 @@ services:
         image: backend-server:latest
         build: server/
         ports:
-            - "1001:1001"
+            - "10001:10001"
         networks:
             - backend
 volumes:

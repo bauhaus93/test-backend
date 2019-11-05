@@ -35,7 +35,7 @@ impl Error for ServiceError {
         }
     }
 
-    fn cause(&self) -> Option<&Error> {
+    fn cause(&self) -> Option<&dyn Error> {
         match *self {
             ServiceError::Persistence(ref err) => Some(err),
             ServiceError::Login(ref err) => Some(err),

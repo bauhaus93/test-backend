@@ -1,20 +1,22 @@
+use base64;
+use sha2::{Digest, Sha512Trunc256};
 use std::cell::RefCell;
 use std::sync::Mutex;
-use sha2::{ Sha512Trunc256, Digest };
-use base64;
 
-use rand::{ Rng, FromEntropy };
 use rand::rngs::StdRng;
+use rand::{FromEntropy, Rng};
 
-use crate::dto::{ Login, Session, PasswordHash };
-use crate::persistence::{ UserDao, PasswordDao, SessionDao, UserDaoPg, PasswordDaoPg, SessionDaoPg };
-use crate::service::{ ServiceError, LoginError, LoginService };
+use crate::dto::{Login, PasswordHash, Session};
+use crate::persistence::{
+    PasswordDao, PasswordDaoPg, SessionDao, SessionDaoPg, UserDao, UserDaoPg,
+};
+use crate::service::{LoginError, LoginService, ServiceError};
 
 pub struct SimpleLoginService {
     rng: Mutex<RefCell<StdRng>>,
-    user_dao: Box<UserDao>,
-    password_dao: Box<PasswordDao>,
-    session_dao: Box<SessionDao>
+    user_dao: Box<dyn UserDao>,
+    password_dao: Box<dyn PasswordDao>,
+    session_dao: Box<dyn SessionDao>,
 }
 
 impl SimpleLoginService {
@@ -23,7 +25,7 @@ impl SimpleLoginService {
             rng: Mutex::new(RefCell::new(StdRng::from_entropy())),
             user_dao: Box::new(UserDaoPg::new()?),
             password_dao: Box::new(PasswordDaoPg::new()?),
-            session_dao: Box::new(SessionDaoPg::new()?)
+            session_dao: Box::new(SessionDaoPg::new()?),
         };
         Ok(service)
     }
@@ -41,11 +43,11 @@ impl SimpleLoginService {
 
     fn generate_salt(&self) -> Result<[u8; 16], ServiceError> {
         let mut salt: [u8; 16] = [0; 16];
-        
+
         match self.rng.lock() {
             Ok(guard) => {
                 guard.borrow_mut().fill(&mut salt);
-            },
+            }
             Err(_poisoned) => {
                 return Err(ServiceError::MutexPoisoned);
             }
@@ -55,11 +57,11 @@ impl SimpleLoginService {
 
     fn generate_session_id(&self) -> Result<String, ServiceError> {
         let mut session_id: [u8; 32] = [0; 32];
-        
+
         match self.rng.lock() {
             Ok(guard) => {
                 guard.borrow_mut().fill(&mut session_id);
-            },
+            }
             Err(_poisoned) => {
                 return Err(ServiceError::MutexPoisoned);
             }
@@ -96,28 +98,32 @@ impl LoginService for SimpleLoginService {
                 pw_hash.set_user_id(new_user.get_id());
                 match self.password_dao.add_password_hash(pw_hash) {
                     Ok(_) => self.signin(login),
-                    Err(add_pw_err) => { // user was created, but password entry could not be added
-                        if let Err(del_user_err) = self.user_dao.delete_user_by_id(new_user.get_id()) {
+                    Err(add_pw_err) => {
+                        // user was created, but password entry could not be added
+                        if let Err(del_user_err) =
+                            self.user_dao.delete_user_by_id(new_user.get_id())
+                        {
                             error!("Could not delete user without password: {}", del_user_err);
                         }
                         Err(add_pw_err.into())
                     }
                 }
-            },
-            Err(hash_creation_err) => { // user was created, but password hash could not be created
+            }
+            Err(hash_creation_err) => {
+                // user was created, but password hash could not be created
                 if let Err(del_user_err) = self.user_dao.delete_user_by_id(new_user.get_id()) {
                     error!("Could not delete user without password: {}", del_user_err);
                 }
                 Err(hash_creation_err.into())
             }
-        }     
+        }
     }
 
     fn signin(&self, login: Login) -> Result<Session, ServiceError> {
         info!("Signing in: {}", login.get_user());
         let user_id = match login.get_user().get_name() {
             name if name.len() > 0 => self.user_dao.get_user_by_name(name)?.get_id(),
-            _ => return Err(LoginError::NeedUsername.into())
+            _ => return Err(LoginError::NeedUsername.into()),
         };
 
         let saved_hash = self.password_dao.get_password_hash_by_user_id(user_id)?;
@@ -130,11 +136,18 @@ impl LoginService for SimpleLoginService {
             session.set_id(&session_id);
             session.set_user_id(user_id);
             self.session_dao.add_session(session.clone())?;
-            info!("New session: user = '{}', session_id = '{}'", login.get_user().get_name(), session.get_id());
+            info!(
+                "New session: user = '{}', session_id = '{}'",
+                login.get_user().get_name(),
+                session.get_id()
+            );
             session.set_user_id(0); // Don't expose internal user id
             Ok(session)
         } else {
-            info!("Password hashes were not equal, no session for '{}' created.", login.get_user().get_name());
+            info!(
+                "Password hashes were not equal, no session for '{}' created.",
+                login.get_user().get_name()
+            );
             Err(LoginError::IncorrectPassword.into())
         }
     }
@@ -161,7 +174,8 @@ fn is_strong_password(password: &str) -> bool {
     if password.len() < 8 {
         return false;
     }
-    if !password.is_ascii() {   // TODO: also include non-ascii chars
+    if !password.is_ascii() {
+        // TODO: also include non-ascii chars
         return false;
     }
     if let None = password.find(|c: char| c.is_uppercase()) {

@@ -26,7 +26,7 @@ impl Error for DaoError {
         }
     }
 
-    fn cause(&self) -> Option<&Error> {
+    fn cause(&self) -> Option<&dyn Error> {
         match *self {
             DaoError::Postgres(ref err) => Some(err),
             DaoError::MutexPoisoned => None,

@@ -50,7 +50,7 @@ impl Error for PresentationError {
         }
     }
 
-    fn cause(&self) -> Option<&Error> {
+    fn cause(&self) -> Option<&dyn Error> {
         match *self {
             PresentationError::Service(ref err) => Some(err),
             PresentationError::Hyper(ref err) => Some(err),

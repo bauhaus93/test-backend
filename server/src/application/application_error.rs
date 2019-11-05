@@ -60,7 +60,7 @@ impl Error for ApplicationError {
         }
     }
 
-    fn cause(&self) -> Option<&Error> {
+    fn cause(&self) -> Option<&dyn Error> {
         match *self {
             ApplicationError::Presentation(ref err) => Some(err),
             ApplicationError::AssetNotExisting(_) => None,

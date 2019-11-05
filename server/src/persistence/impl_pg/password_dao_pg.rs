@@ -1,4 +1,4 @@
-use postgres::{Connection, TlsMode};
+use postgres::Connection;
 use std::sync::Mutex;
 
 use super::pg_params::PG_PARAMS;
@@ -13,7 +13,6 @@ pub struct PasswordDaoPg {
 
 impl PasswordDaoPg {
     pub fn new() -> Result<PasswordDaoPg, DaoError> {
-        trace!("Connecting to db with '{}'...", PG_PARAMS);
         let connection = try_connect(PG_PARAMS, 3)?;
 
         let dao = PasswordDaoPg {

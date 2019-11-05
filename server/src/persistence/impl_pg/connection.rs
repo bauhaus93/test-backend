@@ -15,7 +15,7 @@ pub fn try_connect(pg_params: &str, max_tries: u64) -> Result<Connection, DaoErr
 					return Err(DaoError::from(e));
 				} else {
 					warn!("DB Connection failed, retrying in {} ms", SLEEP_FACTOR * (i + 1));
-					std::thread::sleep(time::Duration::from_millis(SLEEP_FACTOR * (i + 1)));
+					thread::sleep(time::Duration::from_millis(SLEEP_FACTOR * (i + 1)));
 				}
 		}
         }
