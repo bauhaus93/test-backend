@@ -5,7 +5,7 @@ use crate::persistence::DaoError;
 
 pub fn try_connect(pg_params: &str, max_tries: u64) -> Result<Connection, DaoError> {
 	const SLEEP_FACTOR: u64 = 1000;
-	debug!("Connecting to db with '{}'...", pg_params);
+	debug!("Connecting to db with '{}'", pg_params);
     for i in 0..max_tries + 1 {
         match Connection::connect(pg_params, TlsMode::None) {
             Ok(c) => return Ok(c),
