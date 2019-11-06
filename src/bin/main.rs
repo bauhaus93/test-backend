@@ -11,16 +11,18 @@ use hyper::service::{ service_fn, make_service_fn };
 use hyper::server::conn::AddrStream;
 use futures::Future;
 
-use test_backend::utility::init_logger;
+use test_backend::utility::{ init_logger, get_setting };
 use test_backend::application::{ Application, static_response };
 
 fn main() {
-    const SERVER_ADDR: &'static str = "172.16.11.11:10001";
     init_logger();
+    let server_addr: String = format!("{}:{}",
+        get_setting("FRONTEND_SERVER_IP"),
+        get_setting("SERVER_PORT"));
 
-    info!("Running server on {}", SERVER_ADDR);
-    run_server(SERVER_ADDR); 
-    info!("Server finished");
+    info!("Running server on {}", server_addr);
+    run_server(&server_addr); 
+    info!("Server exiting");
 }
 
 fn run_server(addr: &str) {

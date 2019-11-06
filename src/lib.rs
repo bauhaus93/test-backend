@@ -10,6 +10,9 @@ extern crate sha2;
 extern crate serde;
 extern crate serde_json;
 extern crate base64;
+#[macro_use]
+extern crate lazy_static;
+extern crate config;
 
 pub mod application;
 pub mod presentation;
