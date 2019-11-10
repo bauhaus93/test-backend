@@ -2,7 +2,6 @@ use base64;
 use sha2::{Digest, Sha512Trunc256};
 use std::cell::RefCell;
 use std::sync::Mutex;
-
 use rand::rngs::StdRng;
 use rand::{FromEntropy, Rng};
 

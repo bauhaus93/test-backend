@@ -3,7 +3,7 @@ use std::sync::Mutex;
 
 use super::pg_params::PG_PARAMS;
 use super::try_connect;
-use crate::dto::User;
+use crate::dto::{Session, User};
 use crate::persistence::DaoError;
 use crate::persistence::UserDao;
 
@@ -88,6 +88,38 @@ impl UserDao for UserDaoPg {
                 "user_".to_owned(),
                 "name".to_owned(),
                 username.to_owned(),
+            ))
+        } else {
+            let row = rows.get(0);
+            let mut user = User::default();
+            user.set_id(row.get(0));
+            user.set_name(&row.get::<_, String>(1));
+            user.set_email(&row.get::<_, String>(2));
+
+            Ok(user)
+        }
+    }
+
+    fn get_user_by_session(&self, session: Session) -> Result<User, DaoError> {
+        let guard = self
+            .connection
+            .lock()
+            .or_else(|_p| return Err(DaoError::MutexPoisoned))
+            .unwrap();
+        let stmt = guard.prepare(
+            "
+			SELECT  user_.id, user_.name, user_.email
+			FROM user_ LEFT JOIN session
+			ON user_.id = session.user_id
+			WHERE session.id = $1
+			",
+        )?;
+        let rows = stmt.query(&[&session.get_id()])?;
+        if rows.len() == 0 {
+            Err(DaoError::EntryNotFound(
+                "session".to_owned(),
+                "id".to_owned(),
+                session.get_id().to_owned(),
             ))
         } else {
             let row = rows.get(0);

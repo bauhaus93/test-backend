@@ -8,13 +8,11 @@ use crate::service::service_error::ServiceError;
 
 #[macro_export]
 macro_rules! create_request_handler {
-    ($rq:ident, $svc:expr, $mtd:ident) => {
-		{
-			let svc_clone = $svc.clone();
-			let func = move |i| svc_clone.$mtd(i);
-			crate::presentation::request::handle_request($rq, func)
-		}
-	};
+    ($rq:ident, $svc:expr, $mtd:ident) => {{
+        let svc_clone = $svc.clone();
+        let func = move |i| svc_clone.$mtd(i);
+        crate::presentation::request::handle_request($rq, func)
+    }};
 }
 
 pub fn handle_request<F, T, R>(request: Request<Body>, handler_function: F) -> ResponseFuture

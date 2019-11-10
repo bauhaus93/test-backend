@@ -1,16 +1,16 @@
 use hyper::{Body, Method, Request};
 
 use super::{static_response, ApplicationError, ResponseFuture};
-use crate::presentation::LoginController;
+use crate::presentation::UserController;
 
 pub struct Application {
-    login_controller: LoginController,
+    user_controller: UserController,
 }
 
 impl Application {
     pub fn new() -> Result<Application, ApplicationError> {
         let app = Application {
-            login_controller: LoginController::new()?,
+            user_controller: UserController::new()?,
         };
 
         Ok(app)
@@ -37,8 +37,9 @@ impl Application {
 
     fn handle_post(&self, request: Request<Body>) -> ResponseFuture {
         match request.uri().path() {
-            "/api/signup" => self.login_controller.signup(request),
-            "/api/signin" => self.login_controller.signin(request),
+            "/api/signup" => self.user_controller.signup(request),
+            "/api/signin" => self.user_controller.signin(request),
+            "/api/sessionuser" => self.user_controller.get_session_user(request),
             _ => static_response::error_404_future(),
         }
     }
